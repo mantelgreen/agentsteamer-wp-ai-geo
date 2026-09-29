@@ -47,6 +47,7 @@ function agentsteamer_ai_default_settings() {
 		'indexnow_key'       => '',
 		'indexnow_auto'      => 1,
 		'baidu_enabled'      => 0,
+		'baidu_endpoint'     => '',
 		'baidu_token'        => '',
 		'baidu_site'         => '',
 

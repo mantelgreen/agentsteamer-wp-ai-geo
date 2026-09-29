@@ -85,6 +85,9 @@ class AgentSteamer_AI_Settings {
 		if ( isset( $input['baidu_site'] ) ) {
 			$out['baidu_site'] = esc_url_raw( $input['baidu_site'] );
 		}
+		if ( isset( $input['baidu_endpoint'] ) ) {
+			$out['baidu_endpoint'] = esc_url_raw( str_replace( '&amp;', '&', (string) $input['baidu_endpoint'] ) );
+		}
 
 		// API key: keep the existing value when the field is left blank (masked form).
 		if ( isset( $input['api_key'] ) && '' !== trim( (string) $input['api_key'] ) ) {

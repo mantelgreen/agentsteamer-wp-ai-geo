@@ -698,17 +698,10 @@ class AgentSteamer_AI_Admin {
 							</td>
 						</tr>
 						<tr>
-							<th scope="row"><label for="asi-baidu-token"><?php esc_html_e( '百度推送 Token', 'agentsteamer-ai' ); ?></label></th>
+							<th scope="row"><label for="asi-baidu-endpoint"><?php esc_html_e( '百度推送地址', 'agentsteamer-ai' ); ?></label></th>
 							<td>
-								<input type="text" id="asi-baidu-token" name="agentsteamer_ai_settings[baidu_token]" value="<?php echo esc_attr( $s['baidu_token'] ); ?>" class="large-text" />
-								<p class="description"><?php esc_html_e( '粘贴「普通收录」或「快速收录」页面的 API 推送 Token；站点需已在百度搜索资源平台验证。', 'agentsteamer-ai' ); ?></p>
-							</td>
-						</tr>
-						<tr>
-							<th scope="row"><label for="asi-baidu-site"><?php esc_html_e( '百度站点（可选）', 'agentsteamer-ai' ); ?></label></th>
-							<td>
-								<input type="url" id="asi-baidu-site" name="agentsteamer_ai_settings[baidu_site]" value="<?php echo esc_attr( $s['baidu_site'] ); ?>" class="regular-text" placeholder="<?php echo esc_attr( home_url( '/' ) ); ?>" />
-								<p class="description"><?php esc_html_e( '必须与「百度搜索资源平台」中该站点的验证域名完全一致（含 www 与 http/https）。留空则使用本站首页地址。若报 site init fail，多半是这里与验证域名不一致。', 'agentsteamer-ai' ); ?></p>
+								<input type="text" id="asi-baidu-endpoint" name="agentsteamer_ai_settings[baidu_endpoint]" value="<?php echo esc_attr( $s['baidu_endpoint'] ); ?>" class="large-text code" placeholder="http://data.zz.baidu.com/urls?site=https://blog.agentsteamer.com&token=xxxxxxxx" />
+								<p class="description"><?php esc_html_e( '把「百度搜索资源平台 → 该站点 → 普通收录 / 快速收录 → API 推送」页面给出的完整推送地址整段粘贴进来（含 site 与 token）。site 直接用百度给的值，就不会再报 site init fail。', 'agentsteamer-ai' ); ?></p>
 							</td>
 						</tr>
 					</table>
