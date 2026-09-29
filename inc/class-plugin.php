@@ -80,6 +80,7 @@ final class AgentSteamer_AI_Plugin {
 			'inc/class-editor.php',
 			'inc/class-autofill.php',
 			'inc/class-rest.php',
+			'inc/class-updater.php',
 			'inc/class-admin.php',
 			'inc/class-ai.php',
 		);
@@ -113,6 +114,7 @@ final class AgentSteamer_AI_Plugin {
 		$this->modules['editor']    = new AgentSteamer_AI_Editor();
 		$this->modules['autofill']  = new AgentSteamer_AI_Autofill();
 		$this->modules['rest']      = new AgentSteamer_AI_Rest();
+		$this->modules['updater']   = new AgentSteamer_AI_Updater();
 		$this->modules['ai']        = new AgentSteamer_AI();
 
 		if ( is_admin() ) {

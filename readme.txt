@@ -107,6 +107,7 @@ Enter it under Settings → AI Provider (the field only echoes a mask), or defin
 == Changelog ==
 
 = 0.1.2 =
+* Auto-updates: the plugin now checks GitHub Releases and updates itself in place from the Plugins / Updates screen (no need to delete and re-upload).
 * Indexing settings: clarified that Baidu 普通收录 / 快速收录 share one push API (the token selects the channel), corrected the auto-submit help text (now async), and the log now reports the Baidu success count and remaining quota; HTTP-200 responses that contain an error are now treated as failures.
 
 = 0.1.1 =
