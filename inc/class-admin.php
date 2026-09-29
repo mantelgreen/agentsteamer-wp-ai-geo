@@ -662,7 +662,7 @@ class AgentSteamer_AI_Admin {
 				</div>
 
 				<div class="asi-panel asi-hidden" data-panel="indexing">
-					<p class="description"><?php esc_html_e( '内容发布或更新后，自动向搜索引擎提交 URL 以加快收录。IndexNow 覆盖 Bing / Yandex / Naver / Seznam 等；百度使用快速收录（普通收录）推送接口。', 'agentsteamer-ai' ); ?></p>
+					<p class="description"><?php esc_html_e( '内容发布或更新后，自动向搜索引擎提交 URL 以加快收录。IndexNow 覆盖 Bing / Yandex / Naver / Seznam 等；百度支持普通收录 / 快速收录的 API 推送（同一接口，Token 区分通道）。', 'agentsteamer-ai' ); ?></p>
 					<table class="form-table" role="presentation">
 						<tr>
 							<th scope="row">IndexNow</th>
@@ -686,17 +686,23 @@ class AgentSteamer_AI_Admin {
 						<tr>
 							<th scope="row"><?php esc_html_e( '自动提交', 'agentsteamer-ai' ); ?></th>
 							<td>
-								<label><input type="checkbox" name="agentsteamer_ai_settings[indexnow_auto]" value="1" <?php checked( $s['indexnow_auto'], 1 ); ?> /> <?php esc_html_e( '文章发布或更新时立即提交对应 URL', 'agentsteamer-ai' ); ?></label>
-								<p class="description"><?php esc_html_e( '同步提交：发布/保存时当场调用引擎接口，可能使保存稍慢；同一文章 60 秒内自动去重。', 'agentsteamer-ai' ); ?></p>
+								<label><input type="checkbox" name="agentsteamer_ai_settings[indexnow_auto]" value="1" <?php checked( $s['indexnow_auto'], 1 ); ?> /> <?php esc_html_e( '文章发布或更新时自动提交对应 URL', 'agentsteamer-ai' ); ?></label>
+								<p class="description"><?php esc_html_e( '后台异步提交（不阻塞发布/保存）；同一文章 60 秒内自动去重。', 'agentsteamer-ai' ); ?></p>
 							</td>
 						</tr>
 						<tr>
-							<th scope="row">百度推送</th>
-							<td><label><input type="checkbox" name="agentsteamer_ai_settings[baidu_enabled]" value="1" <?php checked( $s['baidu_enabled'], 1 ); ?> /> <?php esc_html_e( '启用百度快速收录（推送）接口', 'agentsteamer-ai' ); ?></label></td>
+							<th scope="row"><?php esc_html_e( '百度推送', 'agentsteamer-ai' ); ?></th>
+							<td>
+								<label><input type="checkbox" name="agentsteamer_ai_settings[baidu_enabled]" value="1" <?php checked( $s['baidu_enabled'], 1 ); ?> /> <?php esc_html_e( '启用百度收录 API 推送', 'agentsteamer-ai' ); ?></label>
+								<p class="description"><?php esc_html_e( '百度「普通收录」与「快速收录」使用同一个 API 推送地址（data.zz.baidu.com/urls），由 Token 区分通道：填哪个通道的 Token 就提交到哪个通道。', 'agentsteamer-ai' ); ?></p>
+							</td>
 						</tr>
 						<tr>
 							<th scope="row"><label for="asi-baidu-token"><?php esc_html_e( '百度推送 Token', 'agentsteamer-ai' ); ?></label></th>
-							<td><input type="text" id="asi-baidu-token" name="agentsteamer_ai_settings[baidu_token]" value="<?php echo esc_attr( $s['baidu_token'] ); ?>" class="large-text" /></td>
+							<td>
+								<input type="text" id="asi-baidu-token" name="agentsteamer_ai_settings[baidu_token]" value="<?php echo esc_attr( $s['baidu_token'] ); ?>" class="large-text" />
+								<p class="description"><?php esc_html_e( '粘贴「普通收录」或「快速收录」页面的 API 推送 Token；站点需已在百度搜索资源平台验证。', 'agentsteamer-ai' ); ?></p>
+							</td>
 						</tr>
 						<tr>
 							<th scope="row"><label for="asi-baidu-site"><?php esc_html_e( '百度站点（可选）', 'agentsteamer-ai' ); ?></label></th>

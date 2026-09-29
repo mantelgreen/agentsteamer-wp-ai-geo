@@ -113,6 +113,7 @@ Enter it under Settings → AI Provider (the field only echoes a mask), or defin
 * Settings: the max_tokens field now accepts up to 200000 with preset suggestions and inline guidance, and it raises the output ceiling for article generation and content optimization (never lowering the built-in defaults).
 * Indexing submission: publishing/updating now queues submissions in the background (no longer blocks the editor), the IndexNow key-file rule is scoped to the configured key, and "submit all" is no longer capped at 2000 URLs.
 * Sitemap / llms.txt: new "extra sites" setting — the sitemap becomes a sitemap index covering your own site plus other sites (e.g. a blog subdomain), and llms.txt gains an "other sites" section; per-type caps (2000 / 200) removed and sitemap lastmod values corrected.
+* Indexing settings: clarified that Baidu 普通收录 / 快速收录 share one push API (the token selects the channel), corrected the auto-submit help text (now async), and the log now shows the Baidu success count and remaining quota.
 
 = 0.1.0 =
 * On-page SEO, structured data (FAQ / HowTo / Speakable), GEO (llms.txt / Markdown / AI crawlers).

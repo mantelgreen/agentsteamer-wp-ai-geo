@@ -297,7 +297,55 @@ class AgentSteamer_AI_Indexing {
 			)
 		);
 
-		return $this->describe_response( $response );
+		return $this->describe_baidu_response( $response );
+	}
+
+	/**
+	 * Normalise a Baidu push response, surfacing success count / remaining quota.
+	 *
+	 * @param array|WP_Error $response Response.
+	 * @return array
+	 */
+	protected function describe_baidu_response( $response ) {
+		if ( is_wp_error( $response ) ) {
+			return array(
+				'ok'      => false,
+				'code'    => 0,
+				'message' => $response->get_error_message(),
+			);
+		}
+
+		$code = (int) wp_remote_retrieve_response_code( $response );
+		$raw  = (string) wp_remote_retrieve_body( $response );
+		$data = json_decode( $raw, true );
+
+		$out = array(
+			'ok'      => ( $code >= 200 && $code < 300 ),
+			'code'    => $code,
+			'message' => substr( wp_strip_all_tags( $raw ), 0, 300 ),
+		);
+
+		if ( is_array( $data ) ) {
+			if ( isset( $data['error'] ) ) {
+				$out['ok']      = false;
+				$out['message'] = trim( (string) ( isset( $data['message'] ) ? $data['message'] : '' ) . ' (error ' . $data['error'] . ')' );
+			} elseif ( isset( $data['success'] ) ) {
+				$out['ok'] = true;
+				$parts     = array( 'success ' . (int) $data['success'] );
+				if ( isset( $data['remain'] ) ) {
+					$parts[] = 'remain ' . (int) $data['remain'];
+				}
+				if ( ! empty( $data['not_same_site'] ) ) {
+					$parts[] = 'not_same_site ' . count( (array) $data['not_same_site'] );
+				}
+				if ( ! empty( $data['not_valid'] ) ) {
+					$parts[] = 'not_valid ' . count( (array) $data['not_valid'] );
+				}
+				$out['message'] = implode( ' · ', $parts );
+			}
+		}
+
+		return $out;
 	}
 
 	/**
@@ -509,7 +557,12 @@ class AgentSteamer_AI_Indexing {
 										if ( ! empty( $entry['results'] ) ) {
 											foreach ( $entry['results'] as $engine => $r ) {
 												$ok = ! empty( $r['ok'] );
-												echo '<span class="asi-badge ' . ( $ok ? 'asi-badge-ok' : 'asi-badge-warn' ) . '">' . esc_html( $engine . ' ' . ( $ok ? 'OK' : 'FAIL' ) . ( isset( $r['code'] ) && $r['code'] ? ' (' . $r['code'] . ')' : '' ) ) . '</span> ';
+												$msg = isset( $r['message'] ) ? (string) $r['message'] : '';
+												echo '<span class="asi-badge ' . ( $ok ? 'asi-badge-ok' : 'asi-badge-warn' ) . '">' . esc_html( $engine . ' ' . ( $ok ? 'OK' : 'FAIL' ) . ( isset( $r['code'] ) && $r['code'] ? ' (' . $r['code'] . ')' : '' ) ) . '</span>';
+												if ( '' !== $msg ) {
+													echo ' <span class="description">' . esc_html( mb_substr( $msg, 0, 70 ) ) . ( mb_strlen( $msg ) > 70 ? '…' : '' ) . '</span>';
+												}
+												echo ' ';
 											}
 										} else {
 											echo '<span class="asi-badge">' . esc_html__( '未配置引擎', 'agentsteamer-ai' ) . '</span>';
