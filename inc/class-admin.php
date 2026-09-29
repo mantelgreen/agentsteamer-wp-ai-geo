@@ -417,7 +417,7 @@ class AgentSteamer_AI_Admin {
 		?>
 		<div class="wrap asi-wrap">
 			<h1><?php esc_html_e( 'AgentSteamer AI · SEO / GEO 设置', 'agentsteamer-ai' ); ?></h1>
-			<p class="asi-sub"><?php esc_html_e( '站点信息、大模型接口、GEO 与收录、结构化数据的配置。', 'agentsteamer-ai' ); ?></p>
+			<p class="asi-sub"><?php esc_html_e( '站点信息、大模型接口、GEO 与收录、结构化数据的配置。', 'agentsteamer-ai' ); ?> · <code>v<?php echo esc_html( AGENTSTEAMER_AI_VERSION ); ?></code></p>
 
 			<?php if ( isset( $_GET['updated'] ) ) : // phpcs:ignore WordPress.Security.NonceVerification.Recommended ?>
 				<div class="notice notice-success is-dismissible"><p><?php esc_html_e( '设置已保存。', 'agentsteamer-ai' ); ?></p></div>
