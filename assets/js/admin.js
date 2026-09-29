@@ -300,6 +300,102 @@
 		});
 	}
 
+	/* ---------------- Audit: immediate batched autofill ---------------- */
+
+	function autofillScope() {
+		return {
+			seo: true,
+			schema: !!($('asi-autofill-schema') && $('asi-autofill-schema').checked)
+		};
+	}
+
+	function autofillRun() {
+		var btn = $('asi-autofill-run');
+		var panel = $('asi-autofill-panel');
+		var bar = $('asi-autofill-bar');
+		var status = $('asi-autofill-status');
+		var table = $('asi-autofill-results');
+		var tbody = table ? table.querySelector('tbody') : null;
+		var scope = autofillScope();
+		var perPage = 3;
+		var total = 0;
+		var totals = { filled: 0, skipped: 0, failed: 0 };
+
+		if (panel) { panel.classList.remove('asi-hidden'); }
+		if (tbody) { tbody.innerHTML = ''; }
+		if (btn) { btn.disabled = true; }
+		setStatus(status, i18n.afRunning || '...');
+
+		function appendRow(r) {
+			if (!tbody) { return; }
+			var badge = r.status === 'filled' ? 'asi-badge-ok' : (r.status === 'failed' ? 'asi-badge-fail' : 'asi-badge-warn');
+			var label = r.status === 'filled' ? (i18n.afFilled || 'filled') : (r.status === 'failed' ? (i18n.afFailed || 'failed') : (i18n.afSkipped || 'skipped'));
+			var tr = document.createElement('tr');
+			var td1 = document.createElement('td');
+			td1.innerHTML = '<span class="asi-badge ' + badge + '">' + label + '</span>';
+			var td2 = document.createElement('td');
+			var a = document.createElement('a');
+			a.href = r.edit || '#';
+			a.textContent = r.title || ('#' + r.id);
+			td2.appendChild(a);
+			var td3 = document.createElement('td');
+			var parts = [];
+			if (r.filled && r.filled.length) { parts.push(r.filled.join(', ')); }
+			if (r.error) { parts.push(r.error); }
+			td3.textContent = parts.join(' — ');
+			tr.appendChild(td1);
+			tr.appendChild(td2);
+			tr.appendChild(td3);
+			tbody.appendChild(tr);
+		}
+
+		function finish() {
+			if (bar) { bar.style.width = '100%'; }
+			setStatus(status, (i18n.afDone || 'done') + ' — ' +
+				(i18n.afFilled || 'filled') + ' ' + totals.filled + ' · ' +
+				(i18n.afSkipped || 'skipped') + ' ' + totals.skipped + ' · ' +
+				(i18n.afFailed || 'failed') + ' ' + totals.failed);
+			if (btn) { btn.disabled = false; }
+		}
+
+		function step(offset) {
+			api('/autofill/batch', { offset: offset, per_page: perPage, scope: scope }).then(function (res) {
+				totals.filled += res.filled || 0;
+				totals.skipped += res.skipped || 0;
+				totals.failed += res.failed || 0;
+				(res.results || []).forEach(appendRow);
+				var done = offset + (res.count || 0);
+				if (bar) { bar.style.width = Math.min(100, total ? Math.round(done / total * 100) : 100) + '%'; }
+				setStatus(status, (i18n.afRunning || '...') + ' ' + done + '/' + total);
+				if (res.count > 0 && done < total) {
+					step(done);
+				} else {
+					finish();
+				}
+			}).catch(function (err) {
+				setStatus(status, toMessage(err), true);
+				if (btn) { btn.disabled = false; }
+			});
+		}
+
+		api('/autofill/queue', { scope: scope }).then(function (res) {
+			total = res.total || 0;
+			if (!total) { finish(); return; }
+			step(0);
+		}).catch(function (err) {
+			setStatus(status, toMessage(err), true);
+			if (btn) { btn.disabled = false; }
+		});
+	}
+
+	var afForm = $('asi-autofill-form');
+	if (afForm) {
+		afForm.addEventListener('submit', function (e) {
+			e.preventDefault();
+			autofillRun();
+		});
+	}
+
 	/* ---------------- Settings: tabs, presets, test ---------------- */
 	var tabs = document.querySelectorAll('.asi-tabs .nav-tab');
 	if (tabs.length) {

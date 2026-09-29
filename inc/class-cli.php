@@ -83,30 +83,57 @@ class AgentSteamer_AI_CLI {
 	 * [--all]
 	 * : Process all published content.
 	 *
+	 * [--schema]
+	 * : Also fill FAQ / HowTo structured data.
+	 *
 	 * @param array $args       Positional args.
 	 * @param array $assoc_args Associative args.
 	 */
 	public function autofill( $args, $assoc_args ) {
+		$scope = array( 'seo' => true, 'schema' => isset( $assoc_args['schema'] ) );
+		$ai    = new AgentSteamer_AI();
+		$done  = 0;
+
 		$ids = array_map( 'intval', $args );
 		if ( isset( $assoc_args['all'] ) || empty( $ids ) ) {
-			$ids = get_posts(
-				array(
-					'post_type'     => agentsteamer_ai_supported_post_types(),
-					'post_status'   => 'publish',
-					'numberposts'   => 2000,
-					'no_found_rows' => true,
-					'fields'        => 'ids',
-				)
-			);
-		}
-		$ai   = new AgentSteamer_AI();
-		$done = 0;
-		foreach ( $ids as $id ) {
-			if ( $ai->autofill_post( (int) $id ) ) {
-				$done++;
+			$offset = 0;
+			$per    = 50;
+			while ( true ) {
+				$batch = get_posts(
+					array(
+						'post_type'     => agentsteamer_ai_supported_post_types(),
+						'post_status'   => 'publish',
+						'numberposts'   => $per,
+						'offset'        => $offset,
+						'orderby'       => 'ID',
+						'order'         => 'ASC',
+						'no_found_rows' => true,
+						'fields'        => 'ids',
+					)
+				);
+				if ( empty( $batch ) ) {
+					break;
+				}
+				foreach ( $batch as $id ) {
+					$r = $ai->fill_post( (int) $id, $scope );
+					if ( ! empty( $r['filled'] ) ) {
+						$done++;
+					}
+				}
+				if ( count( $batch ) < $per ) {
+					break;
+				}
+				$offset += $per;
+			}
+		} else {
+			foreach ( $ids as $id ) {
+				$r = $ai->fill_post( (int) $id, $scope );
+				if ( ! empty( $r['filled'] ) ) {
+					$done++;
+				}
 			}
 		}
-		\WP_CLI::success( sprintf( '已补全 %d 篇的 SEO 字段。', $done ) );
+		\WP_CLI::success( sprintf( '已补全 %d 篇。', $done ) );
 	}
 
 	/**

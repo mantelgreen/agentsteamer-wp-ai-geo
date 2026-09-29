@@ -137,6 +137,143 @@ class AgentSteamer_AI_Rest {
 				'permission_callback' => array( $this, 'can_manage' ),
 			)
 		);
+
+		register_rest_route(
+			self::NS,
+			'/autofill/queue',
+			array(
+				'methods'             => 'POST',
+				'callback'            => array( $this, 'autofill_queue' ),
+				'permission_callback' => array( $this, 'can_manage' ),
+			)
+		);
+
+		register_rest_route(
+			self::NS,
+			'/autofill/batch',
+			array(
+				'methods'             => 'POST',
+				'callback'            => array( $this, 'autofill_batch' ),
+				'permission_callback' => array( $this, 'can_manage' ),
+			)
+		);
+	}
+
+	/**
+	 * Parse the autofill scope from a request.
+	 *
+	 * @param WP_REST_Request $request Request.
+	 * @return array
+	 */
+	protected function autofill_scope( WP_REST_Request $request ) {
+		$scope = $request->get_param( 'scope' );
+		if ( ! is_array( $scope ) ) {
+			$scope = array();
+		}
+		return array(
+			'seo'    => ! isset( $scope['seo'] ) || ! empty( $scope['seo'] ),
+			'schema' => ! empty( $scope['schema'] ),
+		);
+	}
+
+	/**
+	 * Return the total number of published items to autofill.
+	 *
+	 * @param WP_REST_Request $request Request.
+	 * @return WP_REST_Response
+	 */
+	public function autofill_queue( WP_REST_Request $request ) {
+		delete_transient( 'agentsteamer_ai_audit_results' );
+
+		$total = 0;
+		foreach ( agentsteamer_ai_supported_post_types() as $type ) {
+			$counts = wp_count_posts( $type );
+			if ( isset( $counts->publish ) ) {
+				$total += (int) $counts->publish;
+			}
+		}
+
+		return new WP_REST_Response(
+			array(
+				'total' => $total,
+				'scope' => $this->autofill_scope( $request ),
+			),
+			200
+		);
+	}
+
+	/**
+	 * Autofill a batch of published content (immediate, synchronous).
+	 *
+	 * @param WP_REST_Request $request Request.
+	 * @return WP_REST_Response
+	 */
+	public function autofill_batch( WP_REST_Request $request ) {
+		$scope    = $this->autofill_scope( $request );
+		$offset   = max( 0, (int) $request->get_param( 'offset' ) );
+		$per_page = (int) $request->get_param( 'per_page' );
+		if ( $per_page < 1 ) {
+			$per_page = 3;
+		}
+		if ( $per_page > 10 ) {
+			$per_page = 10;
+		}
+
+		$ids = get_posts(
+			array(
+				'post_type'     => agentsteamer_ai_supported_post_types(),
+				'post_status'   => 'publish',
+				'numberposts'   => $per_page,
+				'offset'        => $offset,
+				'orderby'       => 'ID',
+				'order'         => 'ASC',
+				'no_found_rows' => true,
+				'fields'        => 'ids',
+			)
+		);
+
+		$ai      = new AgentSteamer_AI();
+		$results = array();
+		$filled  = 0;
+		$failed  = 0;
+		$skipped = 0;
+
+		foreach ( $ids as $id ) {
+			$row = $ai->fill_post( (int) $id, $scope );
+			if ( ! empty( $row['error'] ) && empty( $row['filled'] ) ) {
+				$status = 'failed';
+				$failed++;
+			} elseif ( ! empty( $row['filled'] ) ) {
+				$status = 'filled';
+				$filled++;
+			} else {
+				$status = 'skipped';
+				$skipped++;
+			}
+			$results[] = array(
+				'id'      => (int) $id,
+				'title'   => $row['title'],
+				'edit'    => get_edit_post_link( $id, 'raw' ),
+				'status'  => $status,
+				'filled'  => $row['filled'],
+				'skipped' => $row['skipped'],
+				'error'   => $row['error'],
+			);
+		}
+
+		delete_transient( 'agentsteamer_ai_audit_results' );
+
+		return new WP_REST_Response(
+			array(
+				'offset'  => $offset,
+				'count'   => count( $results ),
+				'results' => $results,
+				'filled'  => $filled,
+				'failed'  => $failed,
+				'skipped' => $skipped,
+			),
+			200
+		);
 	}
 
 	/**

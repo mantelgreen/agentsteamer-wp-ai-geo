@@ -68,27 +68,35 @@ class AgentSteamer_AI_Audit {
 
 		$count = 0;
 		foreach ( agentsteamer_ai_supported_post_types() as $type ) {
-			$posts = get_posts(
-				array(
-					'post_type'     => $type,
-					'post_status'   => 'publish',
-					'numberposts'   => 2000,
-					'no_found_rows' => true,
-					'fields'        => 'ids',
-				)
-			);
-			foreach ( $posts as $post_id ) {
-				$title = agentsteamer_ai_get_post_meta( $post_id, 'title' );
-				$desc  = agentsteamer_ai_get_post_meta( $post_id, 'description' );
-				$kw    = agentsteamer_ai_get_post_meta( $post_id, 'focus_keyword' );
-				if ( $title && $desc && $kw ) {
-					continue;
+			$offset = 0;
+			$per    = 500;
+			do {
+				$posts = get_posts(
+					array(
+						'post_type'     => $type,
+						'post_status'   => 'publish',
+						'numberposts'   => $per,
+						'offset'        => $offset,
+						'orderby'       => 'ID',
+						'order'         => 'ASC',
+						'no_found_rows' => true,
+						'fields'        => 'ids',
+					)
+				);
+				foreach ( $posts as $post_id ) {
+					$title = agentsteamer_ai_get_post_meta( $post_id, 'title' );
+					$desc  = agentsteamer_ai_get_post_meta( $post_id, 'description' );
+					$kw    = agentsteamer_ai_get_post_meta( $post_id, 'focus_keyword' );
+					if ( $title && $desc && $kw ) {
+						continue;
+					}
+					if ( ! wp_next_scheduled( 'agentsteamer_ai_autofill', array( $post_id ) ) ) {
+						wp_schedule_single_event( time() + ( 5 * $count ), 'agentsteamer_ai_autofill', array( $post_id ) );
+						$count++;
+					}
 				}
-				if ( ! wp_next_scheduled( 'agentsteamer_ai_autofill', array( $post_id ) ) ) {
-					wp_schedule_single_event( time() + ( 5 * $count ), 'agentsteamer_ai_autofill', array( $post_id ) );
-					$count++;
-				}
-			}
+				$offset += $per;
+			} while ( count( $posts ) === $per );
 		}
 
 		wp_safe_redirect( admin_url( 'admin.php?page=agentsteamer-ai-audit&queued=' . $count ) );
@@ -335,11 +343,26 @@ class AgentSteamer_AI_Audit {
 					<?php wp_nonce_field( 'agentsteamer_ai_run_audit' ); ?>
 					<button type="submit" class="button button-primary"><?php esc_html_e( '重新检查', 'agentsteamer-ai' ); ?></button>
 				</form>
-				<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" style="display:inline-block;">
+				<form id="asi-autofill-form" method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" style="display:inline-block;">
 					<input type="hidden" name="action" value="agentsteamer_ai_autofill_all" />
 					<?php wp_nonce_field( 'agentsteamer_ai_autofill_all' ); ?>
-					<button type="submit" class="button" <?php disabled( ! AgentSteamer_AI_Provider_Manager::is_configured() ); ?>><?php esc_html_e( '为全部内容排队 AI 补全', 'agentsteamer-ai' ); ?></button>
+					<button type="submit" id="asi-autofill-run" class="button" <?php disabled( ! AgentSteamer_AI_Provider_Manager::is_configured() ); ?>><?php esc_html_e( '为全部内容 AI 补全', 'agentsteamer-ai' ); ?></button>
+					<label style="margin-left:10px;vertical-align:middle;"><input type="checkbox" id="asi-autofill-schema" value="1" /> <?php esc_html_e( '同时补全 FAQ / HowTo 结构化数据', 'agentsteamer-ai' ); ?></label>
 				</form>
+				<div id="asi-autofill-panel" class="asi-hidden" style="margin-top:14px;">
+					<div class="asi-progress"><span id="asi-autofill-bar" class="asi-progress-bar" style="width:0%"></span></div>
+					<p id="asi-autofill-status" class="asi-inline-status"></p>
+					<table id="asi-autofill-results" class="widefat striped" style="margin-top:8px;">
+						<thead>
+							<tr>
+								<th style="width:80px;"><?php esc_html_e( '状态', 'agentsteamer-ai' ); ?></th>
+								<th><?php esc_html_e( '内容', 'agentsteamer-ai' ); ?></th>
+								<th><?php esc_html_e( '补全项 / 说明', 'agentsteamer-ai' ); ?></th>
+							</tr>
+						</thead>
+						<tbody></tbody>
+					</table>
+				</div>
 			</div>
 
 			<div class="asi-card">

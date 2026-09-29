@@ -156,6 +156,11 @@ class AgentSteamer_AI_Admin {
 					'streamDone' => __( '生成完成，可编辑后保存为草稿。', 'agentsteamer-ai' ),
 					'schemaAdded' => __( '已自动附带 FAQ / HowTo 结构化数据。', 'agentsteamer-ai' ),
 					'stopped'    => __( '已停止。', 'agentsteamer-ai' ),
+					'afRunning'  => __( '正在补全…', 'agentsteamer-ai' ),
+					'afDone'     => __( '补全完成', 'agentsteamer-ai' ),
+					'afFilled'   => __( '已补全', 'agentsteamer-ai' ),
+					'afSkipped'  => __( '已存在', 'agentsteamer-ai' ),
+					'afFailed'   => __( '失败', 'agentsteamer-ai' ),
 				),
 			)
 		);

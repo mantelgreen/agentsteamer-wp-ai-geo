@@ -448,3 +448,21 @@
 @media (max-width: 782px) {
 	.asi-grid { grid-template-columns: 1fr; }
 }
+
+/* ---------------------------------------------------------------- progress */
+
+.asi-progress {
+	height: 10px;
+	border-radius: 6px;
+	background: var(--asi-brand-soft);
+	overflow: hidden;
+}
+.asi-progress-bar {
+	display: block;
+	height: 100%;
+	width: 0;
+	background: var(--asi-brand);
+	transition: width .25s ease;
+}
+#asi-autofill-status { display: block; margin: 8px 0 0; }
+#asi-autofill-results .asi-badge { white-space: nowrap; }

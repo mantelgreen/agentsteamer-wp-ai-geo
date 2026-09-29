@@ -832,51 +832,126 @@ class AgentSteamer_AI {
 	 * @return bool Whether anything was written.
 	 */
 	public function autofill_post( $post_id ) {
+		$result = $this->fill_post( $post_id, array( 'seo' => true, 'schema' => false ) );
+		return ! empty( $result['filled'] );
+	}
+
+	/**
+	 * Fill blank SEO fields and (optionally) FAQ / HowTo structured data.
+	 *
+	 * Only blank fields are written; already-present values are skipped.
+	 *
+	 * @param int   $post_id Post ID.
+	 * @param array $scope   Flags: seo (bool), schema (bool).
+	 * @return array {id, title, filled[], skipped[], error}
+	 */
+	public function fill_post( $post_id, $scope = array() ) {
+		$scope = wp_parse_args( $scope, array( 'seo' => true, 'schema' => false ) );
+		$out   = array(
+			'id'      => (int) $post_id,
+			'title'   => '',
+			'filled'  => array(),
+			'skipped' => array(),
+			'error'   => '',
+		);
+
 		if ( ! agentsteamer_ai_get_option( 'ai_enabled', 1 ) || ! AgentSteamer_AI_Provider_Manager::is_configured() ) {
-			return false;
+			$out['error'] = __( 'AI 未启用或接口未配置。', 'agentsteamer-ai' );
+			return $out;
 		}
 
 		$post = get_post( $post_id );
 		if ( ! $post ) {
-			return false;
+			$out['error'] = __( '内容不存在。', 'agentsteamer-ai' );
+			return $out;
 		}
-
-		$title = agentsteamer_ai_get_post_meta( $post_id, 'title' );
-		$desc  = agentsteamer_ai_get_post_meta( $post_id, 'description' );
-		$kw    = agentsteamer_ai_get_post_meta( $post_id, 'focus_keyword' );
-
-		if ( $title && $desc && $kw ) {
-			return false;
-		}
+		$out['title'] = '' !== (string) $post->post_title ? $post->post_title : ( '#' . $post->ID );
 
 		$content = agentsteamer_ai_plain_content( $post_id );
 		if ( '' === trim( $content ) ) {
-			$content = $post->post_title;
+			$content = (string) $post->post_title;
 		}
 		if ( '' === trim( $content ) ) {
-			return false;
+			$out['error'] = __( '内容为空。', 'agentsteamer-ai' );
+			return $out;
 		}
 
-		$result = $this->generate_meta( $content, $kw );
-		if ( is_wp_error( $result ) ) {
-			return false;
+		if ( ! empty( $scope['seo'] ) ) {
+			$title = agentsteamer_ai_get_post_meta( $post_id, 'title' );
+			$desc  = agentsteamer_ai_get_post_meta( $post_id, 'description' );
+			$kw    = agentsteamer_ai_get_post_meta( $post_id, 'focus_keyword' );
+			if ( $title ) {
+				$out['skipped'][] = 'title';
+			}
+			if ( $desc ) {
+				$out['skipped'][] = 'description';
+			}
+			if ( $kw ) {
+				$out['skipped'][] = 'focus_keyword';
+			}
+
+			if ( ! $title || ! $desc || ! $kw ) {
+				$meta = $this->generate_meta( $content, $kw );
+				if ( is_wp_error( $meta ) ) {
+					$out['error'] = $meta->get_error_message();
+				} else {
+					if ( ! $title && ! empty( $meta['title'] ) ) {
+						update_post_meta( $post_id, agentsteamer_ai_meta_key( 'title' ), $meta['title'] );
+						$out['filled'][] = 'title';
+					}
+					if ( ! $desc && ! empty( $meta['description'] ) ) {
+						update_post_meta( $post_id, agentsteamer_ai_meta_key( 'description' ), $meta['description'] );
+						$out['filled'][] = 'description';
+					}
+					if ( ! $kw && ! empty( $meta['keyword'] ) ) {
+						update_post_meta( $post_id, agentsteamer_ai_meta_key( 'focus_keyword' ), $meta['keyword'] );
+						$out['filled'][] = 'focus_keyword';
+					}
+				}
+			}
 		}
 
-		$written = false;
-		if ( ! $title && ! empty( $result['title'] ) ) {
-			update_post_meta( $post_id, agentsteamer_ai_meta_key( 'title' ), $result['title'] );
-			$written = true;
-		}
-		if ( ! $desc && ! empty( $result['description'] ) ) {
-			update_post_meta( $post_id, agentsteamer_ai_meta_key( 'description' ), $result['description'] );
-			$written = true;
-		}
-		if ( ! $kw && ! empty( $result['keyword'] ) ) {
-			update_post_meta( $post_id, agentsteamer_ai_meta_key( 'focus_keyword' ), $result['keyword'] );
-			$written = true;
+		if ( ! empty( $scope['schema'] ) ) {
+			$faq_now   = agentsteamer_ai_get_post_meta( $post_id, 'schema_faq' );
+			$howto_now = agentsteamer_ai_get_post_meta( $post_id, 'schema_howto' );
+			if ( $faq_now ) {
+				$out['skipped'][] = 'faq';
+			}
+			if ( $howto_now ) {
+				$out['skipped'][] = 'howto';
+			}
+
+			if ( '' === $faq_now && '' === $howto_now ) {
+				$schema = $this->extract_schema( $content );
+				if ( is_wp_error( $schema ) ) {
+					if ( '' === $out['error'] ) {
+						$out['error'] = $schema->get_error_message();
+					}
+				} else {
+					if ( ! empty( $schema['faq'] ) ) {
+						$lines = array();
+						foreach ( $schema['faq'] as $item ) {
+							$lines[] = $item['q'] . ' || ' . $item['a'];
+						}
+						update_post_meta( $post_id, agentsteamer_ai_meta_key( 'schema_faq' ), implode( "\n", $lines ) );
+						$out['filled'][] = 'faq';
+					}
+					if ( ! empty( $schema['howto']['steps'] ) ) {
+						$lines = array();
+						foreach ( $schema['howto']['steps'] as $step ) {
+							$lines[] = $step['name'] . ' || ' . $step['text'];
+						}
+						update_post_meta( $post_id, agentsteamer_ai_meta_key( 'schema_howto' ), implode( "\n", $lines ) );
+						if ( ! empty( $schema['howto']['name'] ) ) {
+							update_post_meta( $post_id, agentsteamer_ai_meta_key( 'schema_howto_name' ), $schema['howto']['name'] );
+						}
+						$out['filled'][] = 'howto';
+					}
+				}
+			}
 		}
 
-		return $written;
+		return $out;
 	}
 
 	/**
