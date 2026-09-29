@@ -64,6 +64,11 @@ class AgentSteamer_AI_Settings {
 			}
 		}
 
+		// Flush rewrite rules when the IndexNow key changes (the key file rule is key-specific).
+		if ( isset( $out['indexnow_key'] ) && $out['indexnow_key'] !== agentsteamer_ai_get_option( 'indexnow_key' ) ) {
+			update_option( 'agentsteamer_ai_flush_rewrites', 1 );
+		}
+
 		$textarea_fields = array( 'home_desc', 'default_desc', 'llms_txt_intro', 'social_profiles', 'author_knows_about', 'schema_global_jsonld', 'prompt_article', 'prompt_finalize', 'prompt_optimize', 'prompt_meta', 'prompt_alt', 'prompt_schema', 'prompt_topics' );
 		foreach ( $textarea_fields as $key ) {
 			if ( isset( $input[ $key ] ) ) {

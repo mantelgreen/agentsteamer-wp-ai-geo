@@ -31,6 +31,8 @@ class AgentSteamer_AI_Indexing {
 		add_action( 'transition_post_status', array( $this, 'on_transition' ), 10, 3 );
 		add_action( 'save_post', array( $this, 'on_save' ), 25, 3 );
 
+		add_action( 'agentsteamer_ai_submit_urls', array( $this, 'run_submit_urls' ), 10, 2 );
+
 		add_action( 'admin_post_agentsteamer_ai_submit_all', array( $this, 'handle_submit_all' ) );
 		add_action( 'admin_post_agentsteamer_ai_clear_index_log', array( $this, 'handle_clear_log' ) );
 
@@ -52,7 +54,17 @@ class AgentSteamer_AI_Indexing {
 	 * Register the key-file rewrite rule.
 	 */
 	public function rewrites() {
-		add_rewrite_rule( '^([A-Za-z0-9-]{8,128})\.txt$', 'index.php?asi_indexnow_key=$matches[1]', 'top' );
+		// One-time rewrite flush when the rule scheme changes (key-specific rule).
+		if ( '2' !== get_option( 'agentsteamer_ai_indexnow_rules' ) ) {
+			update_option( 'agentsteamer_ai_indexnow_rules', '2', false );
+			update_option( 'agentsteamer_ai_flush_rewrites', 1 );
+		}
+
+		$key = (string) agentsteamer_ai_get_option( 'indexnow_key' );
+		if ( '' === $key || ! preg_match( '/^[A-Za-z0-9-]{8,128}$/', $key ) ) {
+			return;
+		}
+		add_rewrite_rule( '^(' . preg_quote( $key, '/' ) . ')\.txt$', 'index.php?asi_indexnow_key=$matches[1]', 'top' );
 	}
 
 	/**
@@ -153,7 +165,7 @@ class AgentSteamer_AI_Indexing {
 			return;
 		}
 
-		// Throttle: skip if this post was submitted in the last 60 seconds.
+		// Throttle: skip if this post was queued in the last 60 seconds.
 		$throttle = 'agentsteamer_ai_sub_' . (int) $post->ID;
 		if ( get_transient( $throttle ) ) {
 			return;
@@ -162,8 +174,37 @@ class AgentSteamer_AI_Indexing {
 
 		$url = get_permalink( $post->ID );
 		if ( $url ) {
-			$this->submit_urls( array( $url ), 'publish:post#' . $post->ID );
+			$this->schedule_submit( array( $url ), 'publish:post#' . $post->ID );
 		}
+	}
+
+	/**
+	 * Queue URLs for background submission so publishing/updating stays instant.
+	 *
+	 * @param array  $urls    URLs.
+	 * @param string $context Context label.
+	 */
+	protected function schedule_submit( array $urls, $context ) {
+		$urls = array_values( array_unique( array_filter( array_map( 'esc_url_raw', $urls ) ) ) );
+		if ( empty( $urls ) ) {
+			return;
+		}
+		if ( ! wp_next_scheduled( 'agentsteamer_ai_submit_urls', array( $urls, $context ) ) ) {
+			wp_schedule_single_event( time() + 5, 'agentsteamer_ai_submit_urls', array( $urls, $context ) );
+		}
+		if ( ! defined( 'DISABLE_WP_CRON' ) || ! DISABLE_WP_CRON ) {
+			spawn_cron();
+		}
+	}
+
+	/**
+	 * Cron handler: submit queued URLs (runs in the background).
+	 *
+	 * @param array  $urls    URLs.
+	 * @param string $context Context.
+	 */
+	public function run_submit_urls( $urls, $context = 'cron' ) {
+		$this->submit_urls( (array) $urls, $context );
 	}
 
 	/**
@@ -339,19 +380,27 @@ class AgentSteamer_AI_Indexing {
 		}
 		check_admin_referer( 'agentsteamer_ai_submit_all' );
 
-		$urls   = array( home_url( '/' ) );
+		$urls = array( home_url( '/' ) );
 		foreach ( agentsteamer_ai_supported_post_types() as $type ) {
-			$posts = get_posts(
-				array(
-					'post_type'     => $type,
-					'post_status'   => 'publish',
-					'numberposts'   => 2000,
-					'no_found_rows' => true,
-				)
-			);
-			foreach ( $posts as $post ) {
-				$urls[] = get_permalink( $post );
-			}
+			$offset = 0;
+			$per    = 500;
+			do {
+				$posts = get_posts(
+					array(
+						'post_type'     => $type,
+						'post_status'   => 'publish',
+						'numberposts'   => $per,
+						'offset'        => $offset,
+						'orderby'       => 'ID',
+						'order'         => 'ASC',
+						'no_found_rows' => true,
+					)
+				);
+				foreach ( $posts as $post ) {
+					$urls[] = get_permalink( $post );
+				}
+				$offset += $per;
+			} while ( count( $posts ) === $per );
 		}
 
 		$this->submit_urls( $urls, 'manual:all' );
