@@ -67,9 +67,23 @@ function agentsteamer_ai_default_settings() {
 		'api_version'        => '2024-06-01',
 		'thinking_mode'      => 'auto',
 		'temperature'        => 0.7,
-		'max_tokens'         => 3000,
+		'max_tokens'         => 8192,
 		'timeout'            => 60,
 	);
+}
+
+/**
+ * Effective output-token ceiling for the generative tasks (article / optimize).
+ *
+ * The configured max_tokens raises the ceiling but never lowers a task below
+ * its built-in default, so small values can't accidentally truncate output.
+ *
+ * @param int $default Built-in ceiling for the task.
+ * @return int
+ */
+function agentsteamer_ai_output_ceiling( $default ) {
+	$configured = (int) agentsteamer_ai_get_option( 'max_tokens', 8192 );
+	return max( (int) $default, $configured );
 }
 
 /**

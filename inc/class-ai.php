@@ -57,7 +57,7 @@ class AgentSteamer_AI {
 					'content' => $user,
 				),
 			),
-			array( 'max_tokens' => min( 6000, max( 1200, (int) $params['length'] * 2 ) ), 'timeout' => 55 )
+			array( 'max_tokens' => min( agentsteamer_ai_output_ceiling( 6000 ), max( 1200, (int) $params['length'] * 2 ) ), 'timeout' => 55 )
 		);
 
 		if ( is_wp_error( $result ) ) {
@@ -351,7 +351,7 @@ class AgentSteamer_AI {
 				),
 			),
 			array(
-				'max_tokens'  => min( 8000, max( 2000, (int) $params['length'] * 2 ) ),
+				'max_tokens'  => min( agentsteamer_ai_output_ceiling( 8000 ), max( 2000, (int) $params['length'] * 2 ) ),
 				'timeout'     => 120,
 				'temperature' => 0.7,
 			),
@@ -555,7 +555,7 @@ class AgentSteamer_AI {
 				),
 			),
 			array(
-				'max_tokens'  => 6000,
+				'max_tokens'  => agentsteamer_ai_output_ceiling( 6000 ),
 				'timeout'     => 55,
 				'temperature' => 0.5,
 			)

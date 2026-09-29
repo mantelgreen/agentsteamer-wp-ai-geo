@@ -93,7 +93,7 @@ class AgentSteamer_AI_Settings {
 			$out['temperature'] = max( 0, min( 2, (float) $input['temperature'] ) );
 		}
 		if ( isset( $input['max_tokens'] ) ) {
-			$out['max_tokens'] = max( 256, min( 32000, (int) $input['max_tokens'] ) );
+			$out['max_tokens'] = max( 256, min( 200000, (int) $input['max_tokens'] ) );
 		}
 		if ( isset( $input['timeout'] ) ) {
 			$out['timeout'] = max( 10, min( 600, (int) $input['timeout'] ) );

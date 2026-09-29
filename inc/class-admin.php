@@ -587,7 +587,18 @@ class AgentSteamer_AI_Admin {
 						</tr>
 						<tr>
 							<th scope="row"><label for="asi-max-tokens"><?php esc_html_e( 'max_tokens', 'agentsteamer-ai' ); ?></label></th>
-							<td><input type="number" id="asi-max-tokens" name="agentsteamer_ai_settings[max_tokens]" value="<?php echo esc_attr( $s['max_tokens'] ); ?>" min="256" max="32000" step="128" class="small-text" /></td>
+							<td>
+								<input type="number" id="asi-max-tokens" name="agentsteamer_ai_settings[max_tokens]" value="<?php echo esc_attr( $s['max_tokens'] ); ?>" min="256" max="200000" step="1" class="small-text" list="asi-max-tokens-presets" />
+								<datalist id="asi-max-tokens-presets">
+									<option value="2048"></option>
+									<option value="4096"></option>
+									<option value="8192"></option>
+									<option value="16384"></option>
+									<option value="32768"></option>
+									<option value="65536"></option>
+								</datalist>
+								<p class="description"><?php esc_html_e( '单次响应最多生成的「输出」token 上限，不是上下文窗口（上下文由所选模型决定，无需在此填写）。它是上限而非预留，按实际输出计费：填大不会多花钱，但超过所选模型的最大输出会被接口拒绝。一般 2k–8k；需要一次生成更长正文可设 8k–16k，并同步调大「生成长度」。', 'agentsteamer-ai' ); ?></p>
+							</td>
 						</tr>
 						<tr>
 							<th scope="row"><label for="asi-timeout"><?php esc_html_e( '超时（秒）', 'agentsteamer-ai' ); ?></label></th>
