@@ -12,7 +12,7 @@ A self-contained AI SEO & GEO toolkit for WordPress: on-page SEO, structured dat
 
 == Description ==
 
-A self-contained SEO and Generative Engine Optimization (GEO) toolkit for content sites (posts and a wiki / knowledge base). It does not depend on any external platform — the AI provider is configured by the site owner.
+A self-contained SEO and Generative Engine Optimization (GEO) toolkit for any content site (blog, docs, or knowledge base). It was hardened on the AgentSteamer website first, then extracted into a general-purpose plugin that installs on any WordPress site. It does not depend on any external platform — the AI provider is configured by the site owner.
 
 Official site: [https://www.agentsteamer.com](https://www.agentsteamer.com)
 Official blog: [https://blog.agentsteamer.com](https://blog.agentsteamer.com)
