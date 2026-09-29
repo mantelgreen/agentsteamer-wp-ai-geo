@@ -289,21 +289,24 @@
 			} )
 				.then( function ( res ) {
 					var next = Object.assign( {}, meta );
+					var filled = 0;
 					if ( res.faq && res.faq.length ) {
 						next[ META.schema_faq ] = res.faq.map( function ( item ) {
 							return item.q + ' || ' + item.a;
 						} ).join( '\n' );
+						filled += res.faq.length;
 					}
 					if ( res.howto && res.howto.steps && res.howto.steps.length ) {
 						next[ META.schema_howto ] = res.howto.steps.map( function ( s ) {
 							return ( s.name || '' ) + ' || ' + ( s.text || '' );
 						} ).join( '\n' );
+						filled += res.howto.steps.length;
 						if ( res.howto.name ) {
 							next[ META.schema_howto_name ] = res.howto.name;
 						}
 					}
 					setMeta( next );
-					setSchemaMsg( __( '已提取，请检查后保存。', 'agentsteamer-ai' ) );
+					setSchemaMsg( filled ? __( '已提取，请检查后保存。', 'agentsteamer-ai' ) : __( '未提取到问答或步骤，可在下方手动填写。', 'agentsteamer-ai' ) );
 				} )
 				.catch( function ( err ) {
 					setSchemaMsg( ( err && err.message ) || __( '提取失败', 'agentsteamer-ai' ) );
