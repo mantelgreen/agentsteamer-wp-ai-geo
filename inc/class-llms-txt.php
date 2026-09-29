@@ -111,6 +111,15 @@ class AgentSteamer_AI_Llms_Txt {
 			$lines[] = '';
 		}
 
+		$extra = $this->extra_sites();
+		if ( ! empty( $extra ) ) {
+			$lines[] = '## ' . __( '其他站点', 'agentsteamer-ai' );
+			foreach ( $extra as $site ) {
+				$lines[] = '- [' . $site['title'] . '](' . $site['url'] . ')';
+			}
+			$lines[] = '';
+		}
+
 		/**
 		 * Filter the llms.txt output.
 		 *
@@ -118,6 +127,44 @@ class AgentSteamer_AI_Llms_Txt {
 		 * @param array  $settings Settings.
 		 */
 		return apply_filters( 'agentsteamer_ai_llms_txt', implode( "\n", $lines ) . "\n", $settings );
+	}
+
+	/**
+	 * Configured other-site entries for llms.txt, one per line ("标题 | URL" or URL).
+	 *
+	 * @return array
+	 */
+	protected function extra_sites() {
+		$raw = (string) agentsteamer_ai_get_option( 'llms_extra' );
+		if ( '' === trim( $raw ) ) {
+			return array();
+		}
+		$out = array();
+		foreach ( preg_split( '/\r\n|\r|\n/', $raw ) as $line ) {
+			$line = trim( $line );
+			if ( '' === $line ) {
+				continue;
+			}
+			$parts = array_map( 'trim', explode( '|', $line, 2 ) );
+			if ( 2 === count( $parts ) && '' !== $parts[0] && '' !== $parts[1] ) {
+				$url = esc_url_raw( $parts[1] );
+				if ( $url ) {
+					$out[] = array(
+						'title' => $parts[0],
+						'url'   => $url,
+					);
+				}
+			} else {
+				$url = esc_url_raw( $line );
+				if ( $url ) {
+					$out[] = array(
+						'title' => $url,
+						'url'   => $url,
+					);
+				}
+			}
+		}
+		return $out;
 	}
 
 	/**
@@ -158,30 +205,38 @@ class AgentSteamer_AI_Llms_Txt {
 			if ( ! $object ) {
 				continue;
 			}
-			$posts = get_posts(
-				array(
-					'post_type'     => $type,
-					'post_status'   => 'publish',
-					'numberposts'   => 200,
-					'no_found_rows' => true,
-				)
-			);
-			$items = array();
-			foreach ( $posts as $post ) {
-				if ( '1' === agentsteamer_ai_get_post_meta( $post->ID, 'noindex', '0' ) ) {
-					continue;
-				}
-				$desc    = agentsteamer_ai_get_post_meta( $post->ID, 'description' );
-				if ( ! $desc ) {
-					$desc = $post->post_excerpt ? $post->post_excerpt : wp_trim_words( agentsteamer_ai_plain_content( $post->ID ), 24, '…' );
-				}
-				$items[] = array(
-					'id'    => $post->ID,
-					'title' => $post->post_title,
-					'url'   => $this->link_for( $post ),
-					'desc'  => agentsteamer_ai_trim( $desc, 120 ),
+			$items  = array();
+			$offset = 0;
+			$per    = 500;
+			do {
+				$posts = get_posts(
+					array(
+						'post_type'     => $type,
+						'post_status'   => 'publish',
+						'numberposts'   => $per,
+						'offset'        => $offset,
+						'orderby'       => 'ID',
+						'order'         => 'DESC',
+						'no_found_rows' => true,
+					)
 				);
-			}
+				foreach ( $posts as $post ) {
+					if ( '1' === agentsteamer_ai_get_post_meta( $post->ID, 'noindex', '0' ) ) {
+						continue;
+					}
+					$desc = agentsteamer_ai_get_post_meta( $post->ID, 'description' );
+					if ( ! $desc ) {
+						$desc = $post->post_excerpt ? $post->post_excerpt : wp_trim_words( agentsteamer_ai_plain_content( $post->ID ), 24, '…' );
+					}
+					$items[] = array(
+						'id'    => $post->ID,
+						'title' => $post->post_title,
+						'url'   => $this->link_for( $post ),
+						'desc'  => agentsteamer_ai_trim( $desc, 120 ),
+					);
+				}
+				$offset += $per;
+			} while ( count( $posts ) === $per );
 			$groups[] = array(
 				'label' => $object->labels->name,
 				'items' => $items,

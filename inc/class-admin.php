@@ -500,11 +500,25 @@ class AgentSteamer_AI_Admin {
 							</td>
 						</tr>
 						<tr>
+							<th scope="row"><label for="asi-sitemap-extra"><?php esc_html_e( '附加站点 Sitemap', 'agentsteamer-ai' ); ?></label></th>
+							<td>
+								<textarea id="asi-sitemap-extra" name="agentsteamer_ai_settings[sitemap_extra]" rows="3" class="large-text code" placeholder="https://blog.agentsteamer.com/asi-sitemap.xml"><?php echo esc_textarea( $s['sitemap_extra'] ); ?></textarea>
+								<p class="description"><?php esc_html_e( '每行一个其它站点的 sitemap 地址（如子域博客站）。填写后本 sitemap 会输出为 Sitemap Index，引用本站与这些站点。需在 Google Search Console 同时验证这些域名并交叉提交。', 'agentsteamer-ai' ); ?></p>
+							</td>
+						</tr>
+						<tr>
 							<th scope="row"><?php esc_html_e( 'llms.txt', 'agentsteamer-ai' ); ?></th>
 							<td>
 								<label><input type="checkbox" name="agentsteamer_ai_settings[llms_txt_enabled]" value="1" <?php checked( $s['llms_txt_enabled'], 1 ); ?> /> <?php esc_html_e( '生成 /llms.txt', 'agentsteamer-ai' ); ?></label><br />
 								<label><input type="checkbox" name="agentsteamer_ai_settings[llms_full_enabled]" value="1" <?php checked( $s['llms_full_enabled'], 1 ); ?> /> <?php esc_html_e( '生成 /llms-full.txt（全文，体积较大）', 'agentsteamer-ai' ); ?></label>
 								<p class="description"><a href="<?php echo esc_url( home_url( '/llms.txt' ) ); ?>" target="_blank" rel="noopener"><?php echo esc_html( home_url( '/llms.txt' ) ); ?></a></p>
+							</td>
+						</tr>
+						<tr>
+							<th scope="row"><label for="asi-llms-extra"><?php esc_html_e( '其他站点（llms.txt）', 'agentsteamer-ai' ); ?></label></th>
+							<td>
+								<textarea id="asi-llms-extra" name="agentsteamer_ai_settings[llms_extra]" rows="3" class="large-text code" placeholder="博客 | https://blog.agentsteamer.com/llms.txt"><?php echo esc_textarea( $s['llms_extra'] ); ?></textarea>
+								<p class="description"><?php esc_html_e( '每行一个，格式「标题 | URL」或直接填 URL。会作为「其他站点」一节写入 llms.txt，便于 AI 发现姊妹站点。', 'agentsteamer-ai' ); ?></p>
 							</td>
 						</tr>
 						<tr>

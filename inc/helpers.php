@@ -34,9 +34,11 @@ function agentsteamer_ai_default_settings() {
 
 		// GEO.
 		'sitemap_enabled'    => 1,
+		'sitemap_extra'      => '',
 		'llms_txt_enabled'   => 1,
 		'llms_txt_intro'     => '',
 		'llms_full_enabled'  => 0,
+		'llms_extra'         => '',
 		'markdown_enabled'   => 1,
 		'crawler_policy'     => array(),
 
