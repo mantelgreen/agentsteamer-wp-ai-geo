@@ -588,7 +588,7 @@ class AgentSteamer_AI_Admin {
 						<tr>
 							<th scope="row"><label for="asi-max-tokens"><?php esc_html_e( 'max_tokens', 'agentsteamer-ai' ); ?></label></th>
 							<td>
-								<input type="number" id="asi-max-tokens" name="agentsteamer_ai_settings[max_tokens]" value="<?php echo esc_attr( $s['max_tokens'] ); ?>" min="256" max="200000" step="1" class="small-text" list="asi-max-tokens-presets" />
+								<input type="number" id="asi-max-tokens" name="agentsteamer_ai_settings[max_tokens]" value="<?php echo esc_attr( $s['max_tokens'] ); ?>" min="256" max="200000" step="1" style="width:180px;" list="asi-max-tokens-presets" />
 								<datalist id="asi-max-tokens-presets">
 									<option value="2048"></option>
 									<option value="4096"></option>
