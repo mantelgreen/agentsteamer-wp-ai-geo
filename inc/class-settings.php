@@ -57,7 +57,7 @@ class AgentSteamer_AI_Settings {
 			$out[ $key ] = empty( $input[ $key ] ) ? 0 : 1;
 		}
 
-		$text_fields = array( 'title_separator', 'home_title', 'org_name', 'org_type', 'model', 'api_version', 'indexnow_key', 'baidu_token', 'promo_price' );
+		$text_fields = array( 'title_separator', 'home_title', 'org_name', 'org_type', 'model', 'api_version', 'indexnow_key', 'baidu_token' );
 		foreach ( $text_fields as $key ) {
 			if ( isset( $input[ $key ] ) ) {
 				$out[ $key ] = sanitize_text_field( $input[ $key ] );
@@ -79,9 +79,6 @@ class AgentSteamer_AI_Settings {
 		}
 		if ( isset( $input['baidu_site'] ) ) {
 			$out['baidu_site'] = esc_url_raw( $input['baidu_site'] );
-		}
-		if ( isset( $input['brand_url'] ) ) {
-			$out['brand_url'] = esc_url_raw( $input['brand_url'] );
 		}
 
 		// API key: keep the existing value when the field is left blank (masked form).

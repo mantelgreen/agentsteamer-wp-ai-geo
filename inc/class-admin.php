@@ -468,20 +468,6 @@ class AgentSteamer_AI_Admin {
 							<td><input type="url" id="asi-org-logo" name="agentsteamer_ai_settings[org_logo]" value="<?php echo esc_attr( $s['org_logo'] ); ?>" class="regular-text" /></td>
 						</tr>
 						<tr>
-							<th scope="row"><label for="asi-brand-url"><?php esc_html_e( '主站地址', 'agentsteamer-ai' ); ?></label></th>
-							<td>
-								<input type="url" id="asi-brand-url" name="agentsteamer_ai_settings[brand_url]" value="<?php echo esc_attr( $s['brand_url'] ); ?>" class="regular-text" placeholder="https://www.agentsteamer.com" />
-								<p class="description"><?php esc_html_e( '总览页宣传 Banner 的跳转地址。', 'agentsteamer-ai' ); ?></p>
-							</td>
-						</tr>
-						<tr>
-							<th scope="row"><label for="asi-promo-price"><?php esc_html_e( 'Banner 价格（元/席/月）', 'agentsteamer-ai' ); ?></label></th>
-							<td>
-								<input type="text" id="asi-promo-price" name="agentsteamer_ai_settings[promo_price]" value="<?php echo esc_attr( $s['promo_price'] ); ?>" class="small-text" placeholder="39" />
-								<p class="description"><?php esc_html_e( '显示为「低至 {价格} 元/席/月」；留空则不显示价格。', 'agentsteamer-ai' ); ?></p>
-							</td>
-						</tr>
-						<tr>
 							<th scope="row"><label for="asi-social"><?php esc_html_e( '社交 / 权威主页（每行一个）', 'agentsteamer-ai' ); ?></label></th>
 							<td><textarea id="asi-social" name="agentsteamer_ai_settings[social_profiles]" rows="3" class="large-text" placeholder="https://github.com/..."><?php echo esc_textarea( $s['social_profiles'] ); ?></textarea></td>
 						</tr>

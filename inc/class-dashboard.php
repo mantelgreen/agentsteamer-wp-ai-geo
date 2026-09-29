@@ -127,13 +127,11 @@ class AgentSteamer_AI_Dashboard {
 					<p class="asi-banner-title"><?php esc_html_e( '模釜智能体平台', 'agentsteamer-ai' ); ?></p>
 					<p class="asi-banner-sub"><?php esc_html_e( '适用于电商、广告、PPT 制作、办公、数字员工等场景的企业级 AI 智能体，支持私有化部署、数据不出域。', 'agentsteamer-ai' ); ?></p>
 				</div>
-				<?php if ( '' !== trim( (string) agentsteamer_ai_get_option( 'promo_price', '39' ) ) ) : ?>
 				<div class="asi-banner-price">
 					<span class="asi-price-lead"><?php esc_html_e( '低至', 'agentsteamer-ai' ); ?></span>
-					<span class="asi-price-main"><?php echo esc_html( agentsteamer_ai_get_option( 'promo_price', '39' ) ); ?><span class="asi-price-unit"><?php esc_html_e( '元/席/月', 'agentsteamer-ai' ); ?></span></span>
+					<span class="asi-price-main">39<span class="asi-price-unit"><?php esc_html_e( '元/席/月', 'agentsteamer-ai' ); ?></span></span>
 				</div>
-				<?php endif; ?>
-				<a class="asi-banner-cta button" href="<?php echo esc_url( agentsteamer_ai_get_option( 'brand_url', 'https://www.agentsteamer.com' ) ); ?>" target="_blank" rel="noopener"><?php esc_html_e( '访问模釜官网', 'agentsteamer-ai' ); ?></a>
+				<a class="asi-banner-cta button" href="https://www.agentsteamer.com" target="_blank" rel="noopener"><?php esc_html_e( '访问模釜官网', 'agentsteamer-ai' ); ?></a>
 			</div>
 
 			<div class="asi-stat-grid">

@@ -25,8 +25,6 @@ function agentsteamer_ai_default_settings() {
 		'org_name'           => '',
 		'org_logo'           => '',
 		'org_type'           => 'Organization',
-		'brand_url'          => 'https://www.agentsteamer.com',
-		'promo_price'        => '39',
 		'social_profiles'    => '',
 		'author_knows_about' => '',
 		'auto_meta'          => 1,
