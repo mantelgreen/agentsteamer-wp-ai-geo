@@ -706,7 +706,10 @@ class AgentSteamer_AI_Admin {
 						</tr>
 						<tr>
 							<th scope="row"><label for="asi-baidu-site"><?php esc_html_e( '百度站点（可选）', 'agentsteamer-ai' ); ?></label></th>
-							<td><input type="url" id="asi-baidu-site" name="agentsteamer_ai_settings[baidu_site]" value="<?php echo esc_attr( $s['baidu_site'] ); ?>" class="regular-text" placeholder="<?php echo esc_attr( home_url( '/' ) ); ?>" /></td>
+							<td>
+								<input type="url" id="asi-baidu-site" name="agentsteamer_ai_settings[baidu_site]" value="<?php echo esc_attr( $s['baidu_site'] ); ?>" class="regular-text" placeholder="<?php echo esc_attr( home_url( '/' ) ); ?>" />
+								<p class="description"><?php esc_html_e( '必须与「百度搜索资源平台」中该站点的验证域名完全一致（含 www 与 http/https）。留空则使用本站首页地址。若报 site init fail，多半是这里与验证域名不一致。', 'agentsteamer-ai' ); ?></p>
+							</td>
 						</tr>
 					</table>
 					<p><a class="button" href="<?php echo esc_url( admin_url( 'admin.php?page=agentsteamer-ai-indexing' ) ); ?>"><?php esc_html_e( '打开收录提交面板', 'agentsteamer-ai' ); ?></a></p>

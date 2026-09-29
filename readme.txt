@@ -109,6 +109,7 @@ Enter it under Settings → AI Provider (the field only echoes a mask), or defin
 = 0.1.2 =
 * Auto-updates: the plugin now checks GitHub Releases and updates itself in place from the Plugins / Updates screen (no need to delete and re-upload).
 * Indexing settings: clarified that Baidu 普通收录 / 快速收录 share one push API (the token selects the channel), corrected the auto-submit help text (now async), and the log now reports the Baidu success count and remaining quota; HTTP-200 responses that contain an error are now treated as failures.
+* Indexing: actionable hints for common Baidu errors (e.g. "site init fail" → check the verified site/token), and the submission page shows the exact site and (masked) token being sent.
 
 = 0.1.1 =
 * Structured data: smarter AI extraction — a HowTo is generated whenever the article contains actionable information (steps, checklists, paths, evaluation criteria); howto is now always returned as a proper object.

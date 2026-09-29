@@ -281,12 +281,9 @@ class AgentSteamer_AI_Indexing {
 	 */
 	protected function submit_baidu( array $urls ) {
 		$token = (string) agentsteamer_ai_get_option( 'baidu_token' );
-		$site  = (string) agentsteamer_ai_get_option( 'baidu_site' );
-		if ( '' === $site ) {
-			$site = home_url( '/' );
-		}
+		$site  = $this->effective_baidu_site();
 
-		$endpoint = 'http://data.zz.baidu.com/urls?site=' . rawurlencode( untrailingslashit( $site ) ) . '&token=' . rawurlencode( $token );
+		$endpoint = 'http://data.zz.baidu.com/urls?site=' . rawurlencode( $site ) . '&token=' . rawurlencode( $token );
 
 		$response = wp_remote_post(
 			$endpoint,
@@ -298,6 +295,42 @@ class AgentSteamer_AI_Indexing {
 		);
 
 		return $this->describe_baidu_response( $response );
+	}
+
+	/**
+	 * The site string sent to Baidu (as configured, else the home URL).
+	 *
+	 * @return string
+	 */
+	public function effective_baidu_site() {
+		$site = trim( (string) agentsteamer_ai_get_option( 'baidu_site' ) );
+		if ( '' === $site ) {
+			$site = home_url( '/' );
+		}
+		return untrailingslashit( $site );
+	}
+
+	/**
+	 * Human-readable hint for common Baidu push errors.
+	 *
+	 * @param int    $code Baidu error code.
+	 * @param string $msg  Baidu message.
+	 * @return string
+	 */
+	protected function baidu_hint( $code, $msg ) {
+		$hints = array(
+			400 => __( '：百度未识别该站点 —— 站点未在百度搜索资源平台验证，或「百度站点」与验证域名不一致（注意 www、http/https、结尾斜杠）。请到「百度搜索资源平台 → 该站点 → 普通收录 / 快速收录 → API 推送」核对示例 URL 里的 site 值，照抄填入。', 'agentsteamer-ai' ),
+			401 => __( '：Token 无效或与该站点不匹配，请重新复制该站点的 API 推送 Token。', 'agentsteamer-ai' ),
+			403 => __( '：配额已用尽，或该站点未开通此推送通道。', 'agentsteamer-ai' ),
+			429 => __( '：请求过于频繁，请稍后再试。', 'agentsteamer-ai' ),
+		);
+		if ( isset( $hints[ $code ] ) ) {
+			return $hints[ $code ];
+		}
+		if ( false !== stripos( (string) $msg, 'site init fail' ) ) {
+			return $hints[400];
+		}
+		return '';
 	}
 
 	/**
@@ -328,7 +361,8 @@ class AgentSteamer_AI_Indexing {
 		if ( is_array( $data ) ) {
 			if ( isset( $data['error'] ) ) {
 				$out['ok']      = false;
-				$out['message'] = trim( (string) ( isset( $data['message'] ) ? $data['message'] : '' ) . ' (error ' . $data['error'] . ')' );
+				$base           = trim( (string) ( isset( $data['message'] ) ? $data['message'] : '' ) );
+				$out['message'] = $base . ' (error ' . (int) $data['error'] . ')' . $this->baidu_hint( (int) $data['error'], $base );
 			} elseif ( isset( $data['success'] ) ) {
 				$out['ok'] = true;
 				$parts     = array( 'success ' . (int) $data['success'] );
@@ -505,9 +539,10 @@ class AgentSteamer_AI_Indexing {
 					<?php endif; ?>
 				</p>
 				<p>
-					<strong>百度推送：</strong>
+					<strong><?php esc_html_e( '百度推送：', 'agentsteamer-ai' ); ?></strong>
 					<?php if ( $baidu ) : ?>
 						<span class="asi-badge asi-badge-ok"><?php esc_html_e( '已启用', 'agentsteamer-ai' ); ?></span>
+						<span class="description"><?php echo esc_html( sprintf( /* translators: 1: site, 2: token */ __( '发送 site=%1$s · token=%2$s', 'agentsteamer-ai' ), $this->effective_baidu_site(), AgentSteamer_AI_Settings::mask( (string) agentsteamer_ai_get_option( 'baidu_token' ) ) ) ); ?></span>
 					<?php else : ?>
 						<span class="asi-badge"><?php esc_html_e( '未启用', 'agentsteamer-ai' ); ?></span>
 					<?php endif; ?>
