@@ -1,0 +1,8 @@
+#toplevel_page_agentsteamer-ai .wp-menu-image img {
+	width: 20px;
+	height: 20px;
+	padding: 0;
+	margin: 9px auto 0;
+	opacity: 1;
+	filter: brightness(0) invert(1);
+}
