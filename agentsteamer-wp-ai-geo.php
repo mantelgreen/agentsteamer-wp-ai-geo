@@ -3,7 +3,7 @@
  * Plugin Name:       AgentSteamer AI SEO & GEO
  * Plugin URI:        https://www.agentsteamer.com/
  * Description:       WordPress 原生 AI SEO / GEO 优化插件：基础 SEO、结构化数据、llms.txt、Markdown 与 AI 一键成文。自包含，不依赖任何外部平台。
- * Version:           0.1.0
+ * Version:           0.1.1
  * Requires at least: 5.8
  * Requires PHP:      7.4
  * Author:            上海临境绘谷信息科技有限公司
@@ -20,7 +20,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'AGENTSTEAMER_AI_VERSION', '0.1.0' );
+define( 'AGENTSTEAMER_AI_VERSION', '0.1.1' );
 define( 'AGENTSTEAMER_AI_FILE', __FILE__ );
 define( 'AGENTSTEAMER_AI_DIR', plugin_dir_path( __FILE__ ) );
 define( 'AGENTSTEAMER_AI_URL', plugin_dir_url( __FILE__ ) );

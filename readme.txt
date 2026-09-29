@@ -4,7 +4,7 @@ Tags: seo, geo, llms-txt, schema, ai
 Requires at least: 5.8
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 0.1.0
+Stable tag: 0.1.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -106,6 +106,11 @@ Enter it under Settings → AI Provider (the field only echoes a mask), or defin
 
 == Changelog ==
 
+= 0.1.1 =
+* Structured data: smarter AI extraction — a HowTo is generated whenever the article contains actionable information (steps, checklists, paths, evaluation criteria); howto is now always returned as a proper object.
+* Editor sidebar: clearer feedback when an extraction returns nothing.
+* Site audit "AI-fill all content" reworked: runs immediately in batches (no longer depends on WP-Cron) with a live progress bar and per-item results (filled / already present / failed), an optional FAQ / HowTo scope, no 2000-item cap, and the audit cache is refreshed automatically.
+
 = 0.1.0 =
 * On-page SEO, structured data (FAQ / HowTo / Speakable), GEO (llms.txt / Markdown / AI crawlers).
 * One-click article generation (streaming), metadata generation, in-place content optimization (review), image alt, internal links, topic clustering.
@@ -113,6 +118,9 @@ Enter it under Settings → AI Provider (the field only echoes a mask), or defin
 * WP-CLI and the Abilities API.
 
 == Upgrade Notice ==
+
+= 0.1.1 =
+Smarter FAQ / HowTo extraction and a faster, more reliable bulk AI fill.
 
 = 0.1.0 =
 Initial release.
