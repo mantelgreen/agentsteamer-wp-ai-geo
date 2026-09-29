@@ -8,102 +8,111 @@ Stable tag: 0.1.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-WordPress 原生、自包含的 AI SEO / GEO 优化插件：基础 SEO、结构化数据、llms.txt / Markdown、AI 一键成文与审阅队列。
+A self-contained AI SEO & GEO toolkit for WordPress: on-page SEO, structured data, llms.txt / Markdown, and one-click AI writing with a review queue.
 
 == Description ==
 
-用于内容型 WordPress 站点（文章 + 知识库）的 SEO 与生成式引擎优化（GEO）工具。**自包含**，不依赖任何外部平台；大模型接口由站点管理员自行配置。
+A self-contained SEO and Generative Engine Optimization (GEO) toolkit for content sites (posts and a wiki / knowledge base). It does not depend on any external platform — the AI provider is configured by the site owner.
 
-官网：[https://www.agentsteamer.com](https://www.agentsteamer.com)　·　官方 Blog：[https://blog.agentsteamer.com](https://blog.agentsteamer.com)
+Official site: [https://www.agentsteamer.com](https://www.agentsteamer.com)
+Official blog: [https://blog.agentsteamer.com](https://blog.agentsteamer.com)
 
-= 功能 =
+= Features =
 
-**基础 SEO**
-* SEO 标题 / Meta 描述（支持模板变量）、Canonical、robots
-* Open Graph / Twitter 卡片、面包屑、XML Sitemap
-* 列表页批量编辑；编辑器内搜索与社交预览
+**On-page SEO**
+* SEO title / meta description (templating), canonical, robots meta
+* Open Graph / Twitter cards, breadcrumbs, XML sitemap
+* Bulk edit from the post list; in-editor search and social previews
 
-**结构化数据（JSON-LD）**
-* @graph：Organization / WebSite / Article(BlogPosting) / BreadcrumbList / Person / WebPage
-* 文章级：字数、栏目、关键词、Speakable；FAQPage / HowTo / 自定义 JSON-LD
-* 全局 JSON-LD 模板；AI 从正文自动提取 FAQ / HowTo
+**Structured data (JSON-LD)**
+* @graph: Organization / WebSite / Article (BlogPosting) / BreadcrumbList / Person / WebPage
+* Per article: word count, section, keywords, Speakable; FAQPage / HowTo / custom JSON-LD
+* Global JSON-LD template; AI extracts FAQ / HowTo from the content
 
 **GEO**
-* /llms.txt、/llms-full.txt
-* /{slug}.md —— 供 AI 消费的 Markdown 版本
-* AI 爬虫治理（robots.txt，区分「训练 / 搜索索引 / 用户抓取」）
+* /llms.txt and /llms-full.txt
+* /{slug}.md — a clean Markdown version for AI agents
+* AI crawler governance in robots.txt (training / search index / user fetch)
 
-**AI 自动化**
-* 可视化配置大模型接口：OpenAI / DeepSeek / 通义千问 / OpenRouter / Azure OpenAI / Anthropic Claude / Google Gemini / 自定义 OpenAI 兼容
-* 一键生成文章：流式输出，完成后保存为草稿
-* 一键生成 SEO 标题 / 描述 / 焦点关键词
-* 内容就地优化（生成审阅草案）
-* 图片 Alt、内部链接建议、空白字段自动补全
+**AI automation**
+* Configure any provider: OpenAI, DeepSeek, Qwen (DashScope), OpenRouter, Azure OpenAI, Anthropic Claude, Google Gemini, or a custom OpenAI-compatible endpoint
+* One-click article generation with live streaming output, saved as a draft
+* One-click SEO title / description / focus keyword generation
+* In-place content optimization, queued as a review draft
+* Image alt text, internal link suggestions, auto-fill of blank SEO fields
 
-**人机协同**
-* 所有 AI 改动进入审阅队列：修改前后对比、应用 / 拒绝 / 回滚
+**Human in the loop**
+* Every AI change goes to a review queue: before/after diff, apply / reject / roll back
 
-**技术 SEO 与收录**
-* 重定向管理（301/302/307/308/410/451）；slug 变更自动重定向；CSV 导入导出
-* 404 监控，一键转 301
-* 收录提交：IndexNow（Bing / Yandex 等）+ 百度快速收录，发布时同步提交
+**Technical SEO & indexing**
+* Redirect manager (301/302/307/308/410/451), automatic redirect on slug change, CSV import/export
+* 404 monitor with one-click 301
+* Indexing submission: IndexNow (Bing / Yandex, etc.) + Baidu, submitted synchronously on publish
 
-**审计与分析**
-* 站点审计（13 项检查 + 评分）、主题聚类与内容缺口、AI 选题建议、总览仪表盘
+**Audit & analysis**
+* Site audit (13 checks with a score), topic clustering & content gaps, AI topic suggestions, overview dashboard
 
-**开发者接口**
-* WP-CLI：wp agentsteamer-ai audit|optimize|autofill|alt|links|indexnow|llms
-* REST / Abilities：agentsteamer-ai/v1/abilities
-* Hooks：agentsteamer_ai_*
+**Developer interfaces**
+* WP-CLI: wp agentsteamer-ai audit|optimize|autofill|alt|links|indexnow|llms
+* REST / Abilities: agentsteamer-ai/v1/abilities
+* Hooks: agentsteamer_ai_*
 
-= 环境要求 =
+= Requirements =
 
-* WordPress 5.8 或更高
-* PHP 7.4 或更高
-* 一个可配置的大模型接口（API Key，或自建的 OpenAI 兼容服务）
+* WordPress 5.8 or higher
+* PHP 7.4 or higher
+* An AI provider (an API key, or a self-hosted OpenAI-compatible endpoint)
 
 == Installation ==
 
-1. 将 `agentsteamer-wp-ai-geo` 目录放入 `/wp-content/plugins/`。
-2. 在「插件」页面启用。
-3. 前往「AgentSteamer AI → 设置」填写站点信息与大模型接口。
-4. 前往「AgentSteamer AI → 一键生成文章」开始使用。
+1. Upload the `agentsteamer-wp-ai-geo` folder to `/wp-content/plugins/`.
+2. Activate the plugin on the Plugins screen.
+3. Go to **AgentSteamer AI → Settings** to enter your site info and AI provider.
+4. Go to **AgentSteamer AI → Generate Article** to start.
 
 == Frequently Asked Questions ==
 
-= 支持哪些大模型？ =
+= Which AI models are supported? =
 
-任何 OpenAI 兼容接口均可：OpenAI、DeepSeek、通义千问（DashScope）、OpenRouter、Azure OpenAI，以及自建的 OpenAI 兼容服务；另支持 Anthropic Claude、Google Gemini。在「设置 → 大模型接口」中配置，并用「连接测试」验证。
+Any OpenAI-compatible endpoint: OpenAI, DeepSeek, Qwen (DashScope), OpenRouter, Azure OpenAI, or a self-hosted OpenAI-compatible service. Anthropic Claude and Google Gemini are also supported. Configure it under Settings → AI Provider, and use “Test connection” to verify.
 
-= 是否依赖模釜平台或其它外部服务？ =
+= Does it depend on the AgentSteamer platform or any external service? =
 
-不依赖。插件完全自包含，仅使用你自行配置的大模型接口，默认零遥测。
+No. The plugin is fully self-contained and only uses the AI provider you configure. No telemetry by default.
 
-= AI 会直接发布内容吗？ =
+= Will AI publish content automatically? =
 
-不会。所有 AI 生成与改动都会进入「审阅队列」，经你确认后才写入文章，并支持回滚。
+No. All AI output and changes go to a review queue, and nothing is written to a post until you approve it. Changes can be rolled back.
 
-= 收录提交支持哪些搜索引擎？ =
+= Which search engines does indexing submission support? =
 
-IndexNow（Bing、Yandex、Naver 等）与百度快速收录。Google 的普通页面没有实时推送接口，通过 Sitemap 与正常抓取收录。文章发布或更新时会同步提交。
+IndexNow (Bing, Yandex, Naver, etc.) and Baidu. Google has no real-time submission for regular pages; it discovers content via your sitemap and normal crawling. Submission happens when a post is published or updated.
 
-= 会与其它 SEO 插件冲突吗？ =
+= Will it conflict with other SEO plugins? =
 
-建议同一时间只启用一个 SEO 插件。本插件与 Yoast / Rank Math / AIOSEO 均会输出元数据与 Sitemap，如已安装其它插件，请二选一。
+Run one SEO plugin at a time. This plugin, like Yoast / Rank Math / AIOSEO, outputs metadata and a sitemap; if you already run one, choose a single plugin.
 
-= API Key 如何安全保存？ =
+= How is the API key stored? =
 
-可在「设置 → 大模型接口」中填写（表单仅回显掩码），或通过 `wp-config.php` 常量提供以避免明文入库。密钥不会输出到前台。
+Enter it under Settings → AI Provider (the field only echoes a mask), or define it in wp-config.php to avoid storing it in the database. The key is never exposed to the front end.
+
+== Screenshots ==
+
+1. Overview dashboard — SEO / GEO status, audit score, and pending reviews at a glance.
+2. One-click article generation with live streaming output; FAQ / HowTo are extracted automatically.
+3. Editor sidebar — on-page SEO / GEO score, checks, fields, AI tools, internal links, and previews.
+4. Review queue — before/after diff with apply, reject, and roll back.
+5. Site audit — 13 technical and content checks with a score.
 
 == Changelog ==
 
 = 0.1.0 =
-* 基础 SEO、结构化数据（含 FAQ / HowTo / Speakable）、GEO（llms.txt / Markdown / AI 爬虫）。
-* AI 一键成文（流式）、元数据生成、内容优化（审阅）、图片 Alt、内部链接、主题聚类。
-* 审阅队列（含回滚）、重定向、404 监控、收录提交（IndexNow / 百度）、站点审计、仪表盘。
-* WP-CLI 与 Abilities API。
+* On-page SEO, structured data (FAQ / HowTo / Speakable), GEO (llms.txt / Markdown / AI crawlers).
+* One-click article generation (streaming), metadata generation, in-place content optimization (review), image alt, internal links, topic clustering.
+* Review queue (with rollback), redirects, 404 monitor, indexing submission (IndexNow / Baidu), site audit, dashboard.
+* WP-CLI and the Abilities API.
 
 == Upgrade Notice ==
 
 = 0.1.0 =
-首个版本。
+Initial release.
