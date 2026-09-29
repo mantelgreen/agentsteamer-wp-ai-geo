@@ -2,7 +2,9 @@
 
 > 模釜智能体平台官网自用 AI SEO/GEO 优化 WordPress 插件。
 
-一个 **WordPress 原生、自包含** 的 SEO 与生成式引擎优化（GEO）工具，用于模釜（AgentSteamer）官网内容站（文章 + 知识库）。不依赖任何外部平台，自带大模型接口接入与站点检索/索引能力。
+模釜官网：https://www.agentsteamer.com　｜　官方 Blog：https://blog.agentsteamer.com
+
+一个 **WordPress 原生、自包含** 的 SEO 与生成式引擎优化（GEO）工具，用于 [模釜（AgentSteamer）](https://www.agentsteamer.com) 官网内容站（文章 + 知识库）。不依赖任何外部平台，自带大模型接口接入与站点检索/索引能力。
 
 > 说明：本项目**首先用于模釜官网自身内容优化**，并按可独立安装、可复用的插件构建。
 
