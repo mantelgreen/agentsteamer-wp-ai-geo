@@ -4,7 +4,7 @@ Tags: seo, geo, llms-txt, schema, ai
 Requires at least: 5.8
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 0.1.2
+Stable tag: 0.1.3
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -40,6 +40,8 @@ Official blog: [https://blog.agentsteamer.com](https://blog.agentsteamer.com)
 * One-click SEO title / description / focus keyword generation
 * In-place content optimization, queued as a review draft
 * Image alt text, internal link suggestions, auto-fill of blank SEO fields
+* AI tag extraction: suggest relevant tags from the content and apply them in one click
+* Language-aware output: FAQ / HowTo and tags are generated in the article's language (works with AgentSteamer WP AI Lang, Polylang or WPML)
 
 **Human in the loop**
 * Every AI change goes to a review queue: before/after diff, apply / reject / roll back
@@ -106,6 +108,13 @@ Enter it under Settings → AI Provider (the field only echoes a mask), or defin
 
 == Changelog ==
 
+= 0.1.3 =
+* Multilingual: all article-level AI tasks — FAQ / HowTo extraction, SEO title / description generation, AI content optimization (review draft), tag extraction and image alt text — now output in the article's language (detected via the AgentSteamer WP AI Lang plugin, Polylang or WPML). An English article no longer produces Chinese output.
+* New: AI tag extraction — the editor sidebar ("文章标签" panel) can suggest relevant tags from the content, in the article's language, and apply them as WordPress tags.
+* Adds helpers `agentsteamer_ai_content_language_label()` and the `tags` prompt (customizable under Settings → Prompts).
+* More reliable structured extraction: FAQ / HowTo (and tags) now use a higher output ceiling and retry once, with a corrective instruction, when the model returns non-JSON — fixing the "无法解析模型返回的结构化数据" error.
+* Internal links: the insert heading now follows the article's language ("延伸阅读" for Chinese, "Further Reading" otherwise), and related-article suggestions are kept within the same language.
+
 = 0.1.2 =
 * Auto-updates: the plugin now checks GitHub Releases and updates itself in place from the Plugins / Updates screen (no need to delete and re-upload).
 * Indexing settings: clarified that Baidu 普通收录 / 快速收录 share one push API (the token selects the channel), corrected the auto-submit help text (now async), and the log now reports the Baidu success count and remaining quota; HTTP-200 responses that contain an error are now treated as failures.
@@ -127,6 +136,9 @@ Enter it under Settings → AI Provider (the field only echoes a mask), or defin
 * WP-CLI and the Abilities API.
 
 == Upgrade Notice ==
+
+= 0.1.3 =
+Language-aware FAQ / HowTo extraction (multilingual support) and AI tag extraction.
 
 = 0.1.2 =
 Clarified Baidu 普通 / 快速 push, clearer submission logs, and HTTP-200 error responses are now reported as failures.

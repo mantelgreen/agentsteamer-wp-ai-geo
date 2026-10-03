@@ -103,17 +103,19 @@ class AgentSteamer_AI {
 	 *
 	 * @param string $content Content.
 	 * @param string $keyword Primary keyword.
+	 * @param int    $post_id Post id (for language detection).
 	 * @return array|WP_Error
 	 */
-	public function generate_meta( $content, $keyword = '' ) {
+	public function generate_meta( $content, $keyword = '', $post_id = 0 ) {
 		$provider = AgentSteamer_AI_Provider_Manager::get_provider();
 		if ( is_wp_error( $provider ) ) {
 			return $provider;
 		}
 
 		$system = agentsteamer_ai_prompt( 'meta' );
+		$lang   = agentsteamer_ai_content_language_label( $post_id );
 
-		$user = '';
+		$user = '文章语言：' . $lang . "\n请使用该语言输出 keyword、title 与 description。\n\n";
 		if ( $keyword ) {
 			$user .= '指定焦点关键词（必须使用且原样出现于 title 与 description）：' . $keyword . "\n\n";
 		}
@@ -235,38 +237,55 @@ class AgentSteamer_AI {
 	 * @param string $content Content.
 	 * @return array|WP_Error
 	 */
-	public function extract_schema( $content ) {
+	public function extract_schema( $content, $post_id = 0 ) {
 		$provider = AgentSteamer_AI_Provider_Manager::get_provider();
 		if ( is_wp_error( $provider ) ) {
 			return $provider;
 		}
 
 		$system = agentsteamer_ai_prompt( 'schema' );
-		$user = '文章内容：' . "\n" . agentsteamer_ai_trim( $content, 3000 );
+		$lang   = agentsteamer_ai_content_language_label( $post_id );
+		$user   = '文章语言：' . $lang . "\n请使用该语言输出 q/a 与 howto 的全部文本。\n\n文章内容：\n" . agentsteamer_ai_trim( $content, 3000 );
 
-		$result = $provider->chat(
+		$messages = array(
 			array(
-				array(
-					'role'    => 'system',
-					'content' => $system,
-				),
-				array(
-					'role'    => 'user',
-					'content' => $user,
-				),
+				'role'    => 'system',
+				'content' => $system,
 			),
 			array(
-				'max_tokens'  => 900,
-				'timeout'     => 55,
-				'temperature' => 0.2,
-			)
+				'role'    => 'user',
+				'content' => $user,
+			),
+		);
+		$chat_args = array(
+			'max_tokens'  => 2000,
+			'timeout'     => 55,
+			'temperature' => 0.2,
 		);
 
+		$result = $provider->chat( $messages, $chat_args );
 		if ( is_wp_error( $result ) ) {
 			return $result;
 		}
 
 		$data = AgentSteamer_AI_Provider_Manager::extract_json( $result['content'] );
+
+		// One corrective retry when the model returns non-JSON (e.g. truncated output).
+		if ( ! is_array( $data ) ) {
+			$messages[] = array(
+				'role'    => 'assistant',
+				'content' => (string) $result['content'],
+			);
+			$messages[] = array(
+				'role'    => 'user',
+				'content' => '上一次输出不是合法 JSON。请只输出一个完整、合法的 JSON 对象（不要代码围栏、不要任何解释），结构为 {"faq":[{"q":"","a":""}],"howto":{"name":"","steps":[{"name":"","text":""}]}}。',
+			);
+			$retry = $provider->chat( $messages, $chat_args );
+			if ( ! is_wp_error( $retry ) ) {
+				$data = AgentSteamer_AI_Provider_Manager::extract_json( $retry['content'] );
+			}
+		}
+
 		if ( ! is_array( $data ) ) {
 			return new WP_Error( 'agentsteamer_ai_parse', __( '无法解析模型返回的结构化数据。', 'agentsteamer-ai' ) );
 		}
@@ -303,6 +322,74 @@ class AgentSteamer_AI {
 			'faq'   => $faq,
 			'howto' => $howto,
 		);
+	}
+
+	/**
+	 * Extract relevant tags (keywords) from content using AI, in the article's language.
+	 *
+	 * @param string $content Content.
+	 * @param int    $post_id Post id (for language detection).
+	 * @return array|WP_Error List of tag names.
+	 */
+	public function extract_tags( $content, $post_id = 0 ) {
+		$provider = AgentSteamer_AI_Provider_Manager::get_provider();
+		if ( is_wp_error( $provider ) ) {
+			return $provider;
+		}
+
+		$system = agentsteamer_ai_prompt( 'tags' );
+		$lang   = agentsteamer_ai_content_language_label( $post_id );
+		$user   = '文章语言：' . $lang . "\n\n文章内容：\n" . agentsteamer_ai_trim( $content, 3000 );
+
+		$messages = array(
+			array(
+				'role'    => 'system',
+				'content' => $system,
+			),
+			array(
+				'role'    => 'user',
+				'content' => $user,
+			),
+		);
+		$chat_args = array(
+			'max_tokens'  => 700,
+			'timeout'     => 55,
+			'temperature' => 0.3,
+		);
+
+		$result = $provider->chat( $messages, $chat_args );
+		if ( is_wp_error( $result ) ) {
+			return $result;
+		}
+
+		$data = AgentSteamer_AI_Provider_Manager::extract_json( $result['content'] );
+		if ( ! is_array( $data ) || empty( $data['tags'] ) || ! is_array( $data['tags'] ) ) {
+			$messages[] = array(
+				'role'    => 'assistant',
+				'content' => (string) $result['content'],
+			);
+			$messages[] = array(
+				'role'    => 'user',
+				'content' => '上一次输出不是合法 JSON。请只输出一个完整、合法的 JSON 对象（不要代码围栏、不要任何解释），结构为 {"tags":["标签1","标签2"]}。',
+			);
+			$retry = $provider->chat( $messages, $chat_args );
+			if ( ! is_wp_error( $retry ) ) {
+				$data = AgentSteamer_AI_Provider_Manager::extract_json( $retry['content'] );
+			}
+		}
+
+		if ( ! is_array( $data ) || empty( $data['tags'] ) || ! is_array( $data['tags'] ) ) {
+			return new WP_Error( 'agentsteamer_ai_parse', __( '无法解析模型返回的标签。', 'agentsteamer-ai' ) );
+		}
+
+		$tags = array();
+		foreach ( $data['tags'] as $tag ) {
+			$tag = sanitize_text_field( $tag );
+			if ( '' !== $tag && ! in_array( $tag, $tags, true ) ) {
+				$tags[] = $tag;
+			}
+		}
+		return $tags;
 	}
 
 	/**
@@ -367,7 +454,7 @@ class AgentSteamer_AI {
 			return new WP_Error( 'agentsteamer_ai_empty', __( '模型没有返回正文内容。', 'agentsteamer-ai' ) );
 		}
 
-		$meta = $this->finalize_article( $body );
+		$meta = $this->finalize_article( $body, $params['language'] );
 		if ( is_wp_error( $meta ) ) {
 			$meta = array(
 				'title'            => wp_trim_words( wp_strip_all_tags( $body ), 16, '' ),
@@ -392,16 +479,18 @@ class AgentSteamer_AI {
 	 * Derive title / excerpt / meta / keyword / tags from an article body.
 	 *
 	 * @param string $body_html Body HTML.
+	 * @param string $language  Target language code/label (optional).
 	 * @return array|WP_Error
 	 */
-	public function finalize_article( $body_html ) {
+	public function finalize_article( $body_html, $language = '' ) {
 		$provider = AgentSteamer_AI_Provider_Manager::get_provider();
 		if ( is_wp_error( $provider ) ) {
 			return $provider;
 		}
 
 		$system = agentsteamer_ai_prompt( 'finalize' );
-		$user   = '正文：' . agentsteamer_ai_trim( wp_strip_all_tags( $body_html ), 4000 );
+		$lang   = '' !== trim( (string) $language ) ? $language : get_bloginfo( 'language' );
+		$user   = '文章语言：' . $lang . "\n请使用该语言输出全部字段。\n\n正文：" . agentsteamer_ai_trim( wp_strip_all_tags( $body_html ), 4000 );
 
 		$result = $provider->chat(
 			array(
@@ -541,7 +630,8 @@ class AgentSteamer_AI {
 			$raw = ( function_exists( 'mb_substr' ) ? mb_substr( $raw, 0, $max ) : substr( $raw, 0, $max ) ) . "\n<!-- 内容已截断 -->";
 		}
 
-		$user = '焦点关键词：' . ( $keyword ? $keyword : '（无）' ) . "\n\n原文 HTML：\n" . $raw;
+		$lang = agentsteamer_ai_content_language_label( $post_id );
+		$user = '文章语言：' . $lang . "\n请使用该语言输出 content_html、summary 与 changes。\n\n焦点关键词：" . ( $keyword ? $keyword : '（无）' ) . "\n\n原文 HTML：\n" . $raw;
 
 		$result = $provider->chat(
 			array(
@@ -613,7 +703,8 @@ class AgentSteamer_AI {
 		}
 
 		$system = agentsteamer_ai_prompt( 'alt' );
-		$user   = '站点名称：' . get_bloginfo( 'name' ) . "\n图片标题：" . $attachment->post_title . "\n文件名：" . $filename . "\n图片说明：" . $attachment->post_excerpt . "\n所在文章：" . $context;
+		$lang   = agentsteamer_ai_content_language_label( $parent );
+		$user   = '语言：' . $lang . "\n站点名称：" . get_bloginfo( 'name' ) . "\n图片标题：" . $attachment->post_title . "\n文件名：" . $filename . "\n图片说明：" . $attachment->post_excerpt . "\n所在文章：" . $context;
 
 		$result = $provider->chat(
 			array(
@@ -668,10 +759,20 @@ class AgentSteamer_AI {
 			)
 		);
 
+		// Keep suggestions within the same language when the multilingual plugin is present.
+		$source_lang  = function_exists( 'agentsteamer_lang_post_lang' ) ? (string) agentsteamer_lang_post_lang( $post_id ) : '';
+		$can_lang_get = function_exists( 'agentsteamer_lang_post_lang' );
+
 		$scored = array();
 		foreach ( $candidates as $candidate ) {
 			if ( false !== strpos( (string) $post->post_content, get_permalink( $candidate ) ) ) {
 				continue; // already linked.
+			}
+			if ( '' !== $source_lang && $can_lang_get ) {
+				$candidate_lang = (string) agentsteamer_lang_post_lang( $candidate->ID );
+				if ( '' !== $candidate_lang && $candidate_lang !== $source_lang ) {
+					continue; // different language.
+				}
 			}
 			$score = $this->link_score( $post, $candidate );
 			if ( $score < 3 ) {
@@ -891,7 +992,7 @@ class AgentSteamer_AI {
 			}
 
 			if ( ! $title || ! $desc || ! $kw ) {
-				$meta = $this->generate_meta( $content, $kw );
+				$meta = $this->generate_meta( $content, $kw, $post_id );
 				if ( is_wp_error( $meta ) ) {
 					$out['error'] = $meta->get_error_message();
 				} else {
@@ -922,7 +1023,7 @@ class AgentSteamer_AI {
 			}
 
 			if ( '' === $faq_now && '' === $howto_now ) {
-				$schema = $this->extract_schema( $content );
+				$schema = $this->extract_schema( $content, $post_id );
 				if ( is_wp_error( $schema ) ) {
 					if ( '' === $out['error'] ) {
 						$out['error'] = $schema->get_error_message();
@@ -1094,8 +1195,9 @@ class AgentSteamer_AI {
 				'5. 正文中至少出现一处引述或来源说明（如“据……报告”“<blockquote>……</blockquote>”），不确定的信息不要编造。',
 				'6. 正文中至少包含一个 <a href="..."> 链接（可指向本站首页或相关主题）。',
 				'7. 语言自然流畅，避免关键词堆砌。',
-				'8. 只输出一个 JSON 对象，不要输出任何解释性文字或 Markdown 代码围栏。',
-				'JSON 结构：{"title":"文章标题","excerpt":"一句话摘要","content_html":"正文HTML（使用 <p><h2><h3><ul><ol><li><strong><a><blockquote> 等标签）","meta_title":"SEO标题(30-60字符,含焦点关键词)","meta_description":"SEO描述(必须120-150个中文字符,写足字数,含焦点关键词)","focus_keyword":"焦点关键词","tags":["标签1","标签2"]}',
+				'8. 使用用户消息中指定的「语言」写作（该语言为中文时才用中文）。',
+				'9. 只输出一个 JSON 对象，不要输出任何解释性文字或 Markdown 代码围栏。',
+				'JSON 结构：{"title":"文章标题","excerpt":"一句话摘要","content_html":"正文HTML（使用 <p><h2><h3><ul><ol><li><strong><a><blockquote> 等标签）","meta_title":"SEO标题(30-60字符,含焦点关键词)","meta_description":"SEO描述(写足字数:中文120-150字/英文120-160字符,含焦点关键词)","focus_keyword":"焦点关键词","tags":["标签1","标签2"]}',
 			)
 		);
 	}

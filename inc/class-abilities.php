@@ -131,7 +131,7 @@ class AgentSteamer_AI_Abilities {
 					return new WP_Error( 'agentsteamer_ai_forbidden', '无权编辑该文章。', array( 'status' => 403 ) );
 				}
 				$ai     = new AgentSteamer_AI();
-				$result = $ai->generate_meta( agentsteamer_ai_plain_content( $post_id ), agentsteamer_ai_get_post_meta( $post_id, 'focus_keyword' ) );
+				$result = $ai->generate_meta( agentsteamer_ai_plain_content( $post_id ), agentsteamer_ai_get_post_meta( $post_id, 'focus_keyword' ), $post_id );
 				if ( is_wp_error( $result ) ) {
 					return $result;
 				}

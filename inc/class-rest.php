@@ -90,6 +90,16 @@ class AgentSteamer_AI_Rest {
 
 		register_rest_route(
 			self::NS,
+			'/tags/extract',
+			array(
+				'methods'             => 'POST',
+				'callback'            => array( $this, 'tags_extract' ),
+				'permission_callback' => array( $this, 'can_edit' ),
+			)
+		);
+
+		register_rest_route(
+			self::NS,
 			'/optimize/content',
 			array(
 				'methods'             => 'POST',
@@ -340,7 +350,7 @@ class AgentSteamer_AI_Rest {
 		}
 
 		$ai     = new AgentSteamer_AI();
-		$result = $ai->generate_meta( $content, $keyword );
+		$result = $ai->generate_meta( $content, $keyword, $post_id );
 		if ( is_wp_error( $result ) ) {
 			return $this->as_error( $result );
 		}
@@ -421,12 +431,41 @@ class AgentSteamer_AI_Rest {
 		}
 
 		$ai     = new AgentSteamer_AI();
-		$result = $ai->extract_schema( $content );
+		$result = $ai->extract_schema( $content, $post_id );
 		if ( is_wp_error( $result ) ) {
 			return $this->as_error( $result );
 		}
 
 		return new WP_REST_Response( $result, 200 );
+	}
+
+	/**
+	 * Extract relevant tags from a post's content with AI.
+	 *
+	 * @param WP_REST_Request $request Request.
+	 * @return WP_REST_Response|WP_Error
+	 */
+	public function tags_extract( WP_REST_Request $request ) {
+		$post_id = (int) $request->get_param( 'post_id' );
+		if ( ! $post_id || ! current_user_can( 'edit_post', $post_id ) ) {
+			return new WP_Error( 'agentsteamer_ai_forbidden', __( '无权编辑该文章。', 'agentsteamer-ai' ), array( 'status' => 403 ) );
+		}
+
+		$content = $request->get_param( 'content' );
+		if ( ! $content ) {
+			$content = agentsteamer_ai_plain_content( $post_id );
+		}
+		if ( ! $content ) {
+			return new WP_Error( 'agentsteamer_ai_no_content', __( '文章内容为空，无法提取。', 'agentsteamer-ai' ), array( 'status' => 400 ) );
+		}
+
+		$ai   = new AgentSteamer_AI();
+		$tags = $ai->extract_tags( $content, $post_id );
+		if ( is_wp_error( $tags ) ) {
+			return $this->as_error( $tags );
+		}
+
+		return new WP_REST_Response( array( 'tags' => $tags ), 200 );
 	}
 
 	/**
@@ -511,7 +550,18 @@ class AgentSteamer_AI_Rest {
 			return new WP_Error( 'agentsteamer_ai_no_links', __( '没有有效的链接。', 'agentsteamer-ai' ), array( 'status' => 400 ) );
 		}
 
-		$block = "\n<h2>" . __( '延伸阅读', 'agentsteamer-ai' ) . "</h2>\n<ul>\n" . implode( "\n", $items ) . "\n</ul>\n";
+		$base    = agentsteamer_ai_content_language_code( $post_id );
+		$heading = in_array( $base, array( 'zh', 'ja', 'ko' ), true ) ? '延伸阅读' : 'Further Reading';
+
+		/**
+		 * Filter the internal-links section heading.
+		 *
+		 * @param string $heading Heading text.
+		 * @param int    $post_id Post id.
+		 */
+		$heading = apply_filters( 'agentsteamer_ai_links_heading', $heading, $post_id );
+
+		$block = "\n<h2>" . esc_html( $heading ) . "</h2>\n<ul>\n" . implode( "\n", $items ) . "\n</ul>\n";
 		$old   = (string) get_post_field( 'post_content', $post_id );
 		$new   = $old . $block;
 

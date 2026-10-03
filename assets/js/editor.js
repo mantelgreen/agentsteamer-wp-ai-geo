@@ -235,6 +235,16 @@
 		var linkMsg = linkMsgPair[ 0 ];
 		var setLinkMsg = linkMsgPair[ 1 ];
 
+		var tagBusyPair = useState( false );
+		var tagBusy = tagBusyPair[ 0 ];
+		var setTagBusy = tagBusyPair[ 1 ];
+		var tagsPair = useState( [] );
+		var tags = tagsPair[ 0 ];
+		var setTags = tagsPair[ 1 ];
+		var tagMsgPair = useState( '' );
+		var tagMsg = tagMsgPair[ 0 ];
+		var setTagMsg = tagMsgPair[ 1 ];
+
 		function setField( key, value ) {
 			var next = Object.assign( {}, meta );
 			next[ key ] = value;
@@ -314,6 +324,53 @@
 				.then( function () {
 					setSchemaBusy( false );
 				} );
+		}
+
+		function extractTags() {
+			setTagBusy( true );
+			setTagMsg( '' );
+			wp.apiFetch( {
+				path: '/agentsteamer-ai/v1/tags/extract',
+				method: 'POST',
+				data: { post_id: postId, content: content }
+			} )
+				.then( function ( res ) {
+					var list = res && res.tags ? res.tags : [];
+					setTags( list );
+					setTagMsg( list.length ? '' : __( '未提取到标签。', 'agentsteamer-ai' ) );
+				} )
+				.catch( function ( err ) {
+					setTagMsg( ( err && err.message ) || __( '提取失败', 'agentsteamer-ai' ) );
+				} )
+				.then( function () {
+					setTagBusy( false );
+				} );
+		}
+
+		function applyTags() {
+			if ( ! tags.length ) {
+				return;
+			}
+			var coreDispatch = wp.data.dispatch( 'core' );
+			var editorDispatch = wp.data.dispatch( 'core/editor' );
+			var ids = ( wp.data.select( 'core/editor' ).getEditedPostAttribute( 'tags' ) || [] ).slice();
+			var chain = Promise.resolve();
+			tags.forEach( function ( name ) {
+				chain = chain.then( function () {
+					return coreDispatch
+						.saveEntityRecord( 'taxonomy', 'post_tag', { name: name } )
+						.then( function ( term ) {
+							if ( term && term.id && ids.indexOf( term.id ) === -1 ) {
+								ids.push( term.id );
+							}
+						} )
+						.catch( function () {} );
+				} );
+			} );
+			chain.then( function () {
+				editorDispatch.editPost( { tags: ids } );
+				setTagMsg( __( '已添加到文章标签，保存后生效。', 'agentsteamer-ai' ) );
+			} );
 		}
 
 		function optimizeContent() {
@@ -518,6 +575,25 @@
 					)
 				),
 				schemaMsg ? el( Notice, { status: 'success', isDismissible: false }, schemaMsg ) : null
+			),
+			el(
+				PanelBody,
+				{ title: __( '文章标签', 'agentsteamer-ai' ), initialOpen: false },
+				el( 'p', { className: 'asi-hint' }, __( '按文章语言从正文提取相关标签；应用后写入 WordPress 标签（保存文章后生效）。', 'agentsteamer-ai' ) ),
+				el(
+					'div',
+					{ className: 'asi-ai-row' },
+					el( Button, { variant: 'secondary', onClick: extractTags, disabled: tagBusy },
+						tagBusy ? el( Spinner, null ) : __( 'AI 提取标签', 'agentsteamer-ai' )
+					)
+				),
+				tags.length ? el( 'ul', { className: 'asi-link-list' }, tags.map( function ( t, i ) {
+					return el( 'li', { key: i }, el( 'span', { className: 'asi-link-title' }, t ) );
+				} ) ) : null,
+				tags.length ? el( 'div', { className: 'asi-ai-row' },
+					el( Button, { variant: 'primary', onClick: applyTags }, __( '应用为文章标签', 'agentsteamer-ai' ) )
+				) : null,
+				tagMsg ? el( Notice, { status: 'success', isDismissible: false }, tagMsg ) : null
 			),
 			el(
 				PanelBody,

@@ -69,7 +69,7 @@ class AgentSteamer_AI_Settings {
 			update_option( 'agentsteamer_ai_flush_rewrites', 1 );
 		}
 
-		$textarea_fields = array( 'home_desc', 'default_desc', 'llms_txt_intro', 'llms_extra', 'sitemap_extra', 'social_profiles', 'author_knows_about', 'schema_global_jsonld', 'prompt_article', 'prompt_finalize', 'prompt_optimize', 'prompt_meta', 'prompt_alt', 'prompt_schema', 'prompt_topics' );
+		$textarea_fields = array( 'home_desc', 'default_desc', 'llms_txt_intro', 'llms_extra', 'sitemap_extra', 'social_profiles', 'author_knows_about', 'schema_global_jsonld', 'prompt_article', 'prompt_finalize', 'prompt_optimize', 'prompt_meta', 'prompt_alt', 'prompt_schema', 'prompt_tags', 'prompt_topics' );
 		foreach ( $textarea_fields as $key ) {
 			if ( isset( $input[ $key ] ) ) {
 				$out[ $key ] = sanitize_textarea_field( $input[ $key ] );

@@ -731,6 +731,7 @@ class AgentSteamer_AI_Admin {
 							'meta'     => __( '编辑器元数据生成', 'agentsteamer-ai' ),
 							'alt'      => __( '图片 Alt 生成', 'agentsteamer-ai' ),
 							'schema'   => __( 'FAQ/HowTo 提取', 'agentsteamer-ai' ),
+							'tags'     => __( '标签提取', 'agentsteamer-ai' ),
 							'topics'   => __( '选题建议', 'agentsteamer-ai' ),
 						);
 						$prompt_defaults = agentsteamer_ai_prompt_defaults();

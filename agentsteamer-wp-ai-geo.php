@@ -4,7 +4,7 @@
  * Plugin URI:        https://www.agentsteamer.com/
  * Description:       WordPress 原生 AI SEO / GEO 优化插件：基础 SEO、结构化数据、llms.txt、Markdown 与 AI 一键成文。自包含，不依赖任何外部平台。
  * Update URI:        https://github.com/mantelgreen/agentsteamer-wp-ai-geo
- * Version:           0.1.2
+ * Version:           0.1.3
  * Requires at least: 5.8
  * Requires PHP:      7.4
  * Author:            上海临境绘谷信息科技有限公司
@@ -21,7 +21,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'AGENTSTEAMER_AI_VERSION', '0.1.2' );
+define( 'AGENTSTEAMER_AI_VERSION', '0.1.3' );
 define( 'AGENTSTEAMER_AI_FILE', __FILE__ );
 define( 'AGENTSTEAMER_AI_DIR', plugin_dir_path( __FILE__ ) );
 define( 'AGENTSTEAMER_AI_URL', plugin_dir_url( __FILE__ ) );
